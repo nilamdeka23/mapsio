@@ -109,6 +109,16 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if(progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+    }
+
     private void handleSignInResult(GoogleSignInResult result) {
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
         if (result.isSuccess()) {
