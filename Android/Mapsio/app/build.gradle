@@ -28,8 +28,12 @@ dependencies {
     compile 'com.android.support:design:25.4.0'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     testCompile 'junit:junit:4.12'
+
+    //get google dependencies from https://developers.google.com/android/guides/setup
     // Google Play Services
     compile 'com.google.android.gms:play-services-maps:11.8.0'
+    compile 'com.google.android.gms:play-services-places:11.8.0'
+    compile 'com.google.android.gms:play-services-location:11.8.0'
     // Google Auth
     compile 'com.google.android.gms:play-services-auth:11.8.0'
     compile 'com.pkmmte.view:circularimageview:1.1'
@@ -40,6 +44,8 @@ dependencies {
     // Http client
     compile 'com.squareup.retrofit2:retrofit:2.2.0'
     compile 'com.squareup.retrofit2:converter-gson:2.2.0'
+    //Floating search view
+    compile 'com.github.arimorty:floatingsearchview:2.0.3'
 }
 
 apply plugin: 'com.google.gms.google-services'

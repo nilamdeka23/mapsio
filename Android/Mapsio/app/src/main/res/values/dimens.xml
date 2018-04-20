@@ -5,4 +5,21 @@
     <dimen name="nav_header_vertical_spacing">16dp</dimen>
     <dimen name="nav_header_height">160dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+
+
+    <!-- Added for favorite list -->
+    <dimen name="row_padding_vertical">10dp</dimen>
+    <dimen name="activity_padding_horizontal">16dp</dimen>
+    <dimen name="ic_delete">30dp</dimen>
+    <dimen name="thumbnail">90dp</dimen>
+    <dimen name="small_thumbnail">50dp</dimen>
+    <dimen name="padd_10">10dp</dimen>
+
+    <!-- Added for favorite list -->
+
+
+    <!--- Added for search bar on the maps-->
+    <dimen name="search_view_inset">5dp</dimen>
+    <dimen name="sliding_search_view_header_height">250dp</dimen>
+    <!--- Added for search bar on the maps-->
 </resources>
