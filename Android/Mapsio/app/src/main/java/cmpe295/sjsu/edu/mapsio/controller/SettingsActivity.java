@@ -23,14 +23,14 @@ import cmpe295.sjsu.edu.mapsio.R;
  * Created by nilamdeka on 2/21/18.
  */
 
-public class DashboardActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
+public class SettingsActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_dashboard);
+        setContentView(R.layout.activity_settings);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -46,7 +46,7 @@ public class DashboardActivity extends AppCompatActivity implements GoogleApiCli
 
         String name = getIntent().getStringExtra("name");
         String email = getIntent().getStringExtra("email");
-        String imagePath = getIntent().getStringExtra("pic");
+        String imagePath = getIntent().getStringExtra("profile_url");
 
         TextView _name = (TextView) findViewById(R.id.account_title);
         _name.setText(name);
@@ -65,12 +65,12 @@ public class DashboardActivity extends AppCompatActivity implements GoogleApiCli
 
                         if (status.isSuccess()) {
 
-                            Intent intent = new Intent(DashboardActivity.this, GoogleSigninActivity.class);
+                            Intent intent = new Intent(SettingsActivity.this, GoogleSigninActivity.class);
                             startActivity(intent);
                             finish();
 
                         } else {
-                            Toast.makeText(DashboardActivity.this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SettingsActivity.this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
                         }
 
                     }
@@ -87,12 +87,12 @@ public class DashboardActivity extends AppCompatActivity implements GoogleApiCli
 
                         if (status.isSuccess()) {
 
-                            Intent intent = new Intent(DashboardActivity.this, GoogleSigninActivity.class);
+                            Intent intent = new Intent(SettingsActivity.this, GoogleSigninActivity.class);
                             startActivity(intent);
                             finish();
 
                         } else {
-                            Toast.makeText(DashboardActivity.this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SettingsActivity.this, status.getStatusMessage(), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -104,7 +104,7 @@ public class DashboardActivity extends AppCompatActivity implements GoogleApiCli
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
-        Toast.makeText(DashboardActivity.this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(SettingsActivity.this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
 
     }
 }

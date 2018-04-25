@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -19,9 +20,15 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
-import com.google.android.gms.tasks.Task;
 
 import cmpe295.sjsu.edu.mapsio.R;
+import cmpe295.sjsu.edu.mapsio.model.AuthRequest;
+import cmpe295.sjsu.edu.mapsio.service.AuthService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by nilamdeka on 2/21/18.
@@ -33,7 +40,6 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
     private static final int SIGN_IN = 001;
     private GoogleApiClient mGoogleApiClient;
     private ProgressDialog progressDialog;
-    SignInButton signInButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +63,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
                 .build();
 
         //Customizing Sign In With Google Button
-        signInButton = (SignInButton) findViewById(R.id.sign_in_button);
+        SignInButton signInButton = (SignInButton) findViewById(R.id.sign_in_button);
         signInButton.setSize(SignInButton.SIZE_WIDE);
         signInButton.setColorScheme(SignInButton.COLOR_DARK);
         signInButton.setScopes(googleSignInOptions.getScopeArray());
@@ -94,6 +100,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
             Log.d(TAG, "Got cached sign-in");
             GoogleSignInResult result = opr.get();
             handleSignInResult(result);
+
         } else {
             // If the user has not previously signed in on this device or the sign-in has expired,
             // this asynchronous branch will attempt to sign in the user silently.  Cross-device
@@ -121,23 +128,53 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
     private void handleSignInResult(GoogleSignInResult result) {
         Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
             String accountName = acct.getDisplayName();
             String accountEmail = acct.getEmail();
             Uri accountPic = acct.getPhotoUrl();
+            String id = acct.getId();
             String authCode = acct.getServerAuthCode();
 
-            Intent intent = new Intent(GoogleSigninActivity.this, DashboardActivity.class);
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(getString(R.string.base_url))
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            AuthService authService = retrofit.create(AuthService.class);
+            Call<AuthRequest> authRequestCall = authService.register(new AuthRequest(acct.getId(),
+                    authCode));
+
+            authRequestCall.enqueue(new Callback<AuthRequest>() {
+                @Override
+                public void onResponse(Call<AuthRequest> call, Response<AuthRequest> response) {
+                    Log.d("RESPONSE", "RESPONSE" + response.toString());
+                    // TODO: store in shared preferences
+                }
+
+                @Override
+                public void onFailure(Call<AuthRequest> call, Throwable t) {
+                    Log.d("FAILURE", "FAILURE" + t.toString());
+                    // TODO: handle failure condition
+                }
+
+            });
+
+            Intent intent = new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class);
+//            Intent intent = new Intent(GoogleSigninActivity.this, SettingsActivity.class);
             intent.putExtra("name", accountName);
             intent.putExtra("email", accountEmail);
-//            intent.putExtra("pic", accountPic.toString());
+            if (accountPic != null) {
+                intent.putExtra("profile_url", accountPic.toString());
+            }
+
             startActivity(intent);
             finish();
-
         } else {
 
+            Toast.makeText(this, "SignIn" + result.toString(), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -162,6 +199,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        // TODO: handle connection failure
     }
+
 }
