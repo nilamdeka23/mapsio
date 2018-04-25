@@ -3,4 +3,14 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <!-- Added new-->
+    <color name="year">#999999</color>
+    <color name="title">#222222</color>
+
+
+    <color name="bg_row_background">#009688</color>
+    <color name="item_name">#535353</color>
+    <color name="description">#a9a9a9</color>
+    <color name="light_grey">#EEEEEE</color>
+
 </resources>
