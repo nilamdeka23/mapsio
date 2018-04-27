@@ -1,4 +1,4 @@
-package cmpe295.sjsu.edu.mapsio.listener;
+package cmpe295.sjsu.edu.mapsio.controller.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;

@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cmpe295.sjsu.edu.mapsio.R;
-import cmpe295.sjsu.edu.mapsio.listener.FavoritesListAdapter;
-import cmpe295.sjsu.edu.mapsio.listener.RecyclerItemTouchHelper;
-import cmpe295.sjsu.edu.mapsio.listener.RecyclerTouchListener;
+import cmpe295.sjsu.edu.mapsio.controller.adapter.FavoritesListAdapter;
+import cmpe295.sjsu.edu.mapsio.util.RecyclerItemTouchHelper;
+import cmpe295.sjsu.edu.mapsio.controller.listener.RecyclerTouchListener;
 import cmpe295.sjsu.edu.mapsio.model.MyGooglePlaces;
 
 public class FavoritesActivity extends AppCompatActivity implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener, FavoritesListAdapter.FavDirectionsClickListener, FavoritesListAdapter.FavLocationClickListener {
