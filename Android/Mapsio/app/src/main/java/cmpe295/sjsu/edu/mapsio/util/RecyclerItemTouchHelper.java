@@ -1,9 +1,11 @@
-package cmpe295.sjsu.edu.mapsio.listener;
+package cmpe295.sjsu.edu.mapsio.util;
 
 import android.graphics.Canvas;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
+
+import cmpe295.sjsu.edu.mapsio.controller.adapter.FavoritesListAdapter;
 
 /**
  * Created by laddu on 3/13/18.
