@@ -1,34 +1,37 @@
 package cmpe295.sjsu.edu.mapsio.controller;
 
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
-import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBufferResponse;
+import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBufferResponse;
 import com.google.android.gms.location.places.PlaceDetectionClient;
@@ -44,24 +47,25 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 import cmpe295.sjsu.edu.mapsio.R;
+import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 //https://gist.github.com/ccabanero/6996756
+
 public class GoogleMapsActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
+        GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    // will be needed later
     private GoogleMap googleMap;
     // provides access to Google's database of local place and business information.
     private GeoDataClient mGeoDataClient;
@@ -81,6 +85,13 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     private static final String KEY_LOCATION = "location";
 
+    private ArrayList<String> Number;
+    private View ChildView;
+    private int RecyclerViewItemPosition;
+
+    private Marker marker;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,8 +101,8 @@ public class GoogleMapsActivity extends AppCompatActivity
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
         }
 
-
         setContentView(R.layout.activity_main);
+        // init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -101,12 +112,10 @@ public class GoogleMapsActivity extends AppCompatActivity
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         // Prompt the user for permission.
         getLocationPermission();
-
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
-
-        // Build the map.
+        // init map
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -118,22 +127,24 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
                 // TODO: null check on map and map lifecycle methods
-                Log.d("Search Text Changed","Map cleared");
+                Log.d("Search Text Changed", "Map cleared");
                 //googleMap.clear();
                 //Log.d("Search text: oldQuery: ", oldQuery);
                 //Log.d("Search text: newQuery: ", newQuery);
                 //search(newQuery);
-                searchText.delete(0, searchText.length()) ;
+                searchText.delete(0, searchText.length());
                 searchText.append(newQuery);
             }
         });
 
+        // init drawer layout
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        // init navigation menu
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -145,10 +156,10 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             @Override
             public void onSearchAction(String currentQuery) {
-                    Log.d("Search Bar:" ,"Search icon clicked");
-                    Log.d("Search text:",searchText.toString());
-                    googleMap.clear();
-                    search(searchText.toString());
+                Log.d("Search Bar:", "Search icon clicked");
+                Log.d("Search text:", searchText.toString());
+                googleMap.clear();
+                search(searchText.toString());
             }
         });
 
@@ -160,8 +171,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                     @Override
                     public void onMenuOpened() {
                         Log.d("Search Bar", "Opened");
-
-
                     }
 
                     @Override
@@ -170,9 +179,89 @@ public class GoogleMapsActivity extends AppCompatActivity
                     }
                 });
 
+        String name = getIntent().getStringExtra("name");
+        String email = getIntent().getStringExtra("email");
+        String pic = getIntent().getStringExtra("profile_url");
+
+        View header = navigationView.getHeaderView(0);
+
+        TextView nameTextView = (TextView) header.findViewById(R.id.username_textView);
+        nameTextView.setText(name);
+        TextView emailTextView = (TextView) header.findViewById(R.id.email_textView);
+        emailTextView.setText(email);
+        ImageView profilePicImageView = (ImageView) header.findViewById(R.id.account_imageView);
+        Picasso.with(this).load(pic).into(profilePicImageView);
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
+        // Adding items to RecyclerView.
+        AddItemsToRecyclerViewArrayList();
+
+        RecommendationsViewAdapter RecyclerViewHorizontalAdapter = new RecommendationsViewAdapter(Number);
+        LinearLayoutManager HorizontalLayout = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        recyclerView.setLayoutManager(HorizontalLayout);
+        recyclerView.setAdapter(RecyclerViewHorizontalAdapter);
+
+        // Adding on item click listener to RecyclerView.
+        recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+
+            GestureDetector gestureDetector = new GestureDetector(GoogleMapsActivity.this, new GestureDetector.SimpleOnGestureListener() {
+
+                @Override
+                public boolean onSingleTapUp(MotionEvent motionEvent) {
+
+                    // Toast.makeText(GoogleMapsActivity.this, "tap up", Toast.LENGTH_LONG).show();
+                    return true;
+                }
+
+            });
+
+            @Override
+            public boolean onInterceptTouchEvent(RecyclerView Recyclerview, MotionEvent motionEvent) {
+
+                ChildView = Recyclerview.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
+
+                if (ChildView != null && gestureDetector.onTouchEvent(motionEvent)) {
+
+                    //Getting clicked value.
+                    RecyclerViewItemPosition = Recyclerview.getChildAdapterPosition(ChildView);
+
+                    // Showing clicked item value on screen using toast message.
+                    Toast.makeText(GoogleMapsActivity.this, Number.get(RecyclerViewItemPosition), Toast.LENGTH_LONG).show();
+
+                }
+
+                return false;
+            }
+
+            @Override
+            public void onTouchEvent(RecyclerView Recyclerview, MotionEvent motionEvent) {
+
+            }
+
+            @Override
+            public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+
+            }
+
+        });
+
     }
 
+    // function to add items in RecyclerView.
+    public void AddItemsToRecyclerViewArrayList() {
 
+        Number = new ArrayList<>();
+        Number.add("ONEAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaa");
+        Number.add("TWO");
+        Number.add("THREE");
+        Number.add("FOUR");
+        Number.add("FIVE");
+        Number.add("SIX");
+        Number.add("SEVEN");
+        Number.add("EIGHT");
+        Number.add("NINE");
+        Number.add("TEN");
+    }
 
     public void search(String searchQuery) {
         Log.d("Search text", searchQuery);
@@ -187,9 +276,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                                 new LatLng(38.581572, -121.494400)), null);*/
 
         Task<AutocompletePredictionBufferResponse> results = null;
-        if(currentPlace!=null) {
-            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
-            LatLngBounds latlngBounds = new LatLngBounds(latLng,latLng);
+//        if (currentPlace != null) {
+//            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
+            LatLng latLng = new LatLng(37.33, -121.88);
+            LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
 
 
             results =
@@ -201,7 +291,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 @Override
                 public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
 
-                    if(task.isSuccessful() && task.getResult()!=null) {
+                    if (task.isSuccessful() && task.getResult() != null) {
 
                         //Holder for the place Ids
                         ArrayList<String> placeIdList = new ArrayList<>();
@@ -221,16 +311,17 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
             });
 
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPlace.getLatLng()));
+//            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPlace.getLatLng()));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             googleMap.animateCamera(CameraUpdateFactory.zoomTo(6));
 
 
-        }else{
-            //TODO : things to do if the current location is not known
-            Log.d("Search" , "Current Place is null");
-
-
-        }
+//        } else {
+//            //TODO : things to do if the current location is not known
+//            Log.d("Search", "Current Place is null");
+//
+//
+//        }
     }
 
 
@@ -244,7 +335,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
 
 
-                    if(task.isSuccessful() && task.getResult()!=null) {
+                    if (task.isSuccessful() && task.getResult() != null) {
                         PlaceBufferResponse response = task.getResult();
                         Place currPlace = response.get(0);
 
@@ -256,7 +347,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
 
                         // TODO: null check on map and map lifecycle methods
-                        if(googleMap!=null) {
+                        if (googleMap != null) {
                             googleMap.addMarker(markerOptions);
                         }
 
@@ -320,7 +411,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
             //Log.d("Navigation menu:" ,"Favorites clicked");
 
-            Intent intent = new Intent(GoogleMapsActivity.this, FavoritesActivity.class);
+            Intent intent = new Intent(this, FavoritesActivity.class);
             startActivity(intent);
             //finish();
         } else if (id == R.id.nav_gallery) {
@@ -329,10 +420,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_manage) {
 
-        /*} else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {*/
-
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -340,10 +427,62 @@ public class GoogleMapsActivity extends AppCompatActivity
         return true;
     }
 
+    // TODO: setMyLocationEnabled(true);
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
 
+        googleMap.setOnPoiClickListener(this);
+
+        googleMap.setOnMarkerClickListener(this);
+
+        googleMap.setOnMapLongClickListener(this);
+    }
+
+    /**
+     * Called when the user clicks a marker.
+     */
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+
+        // Retrieve the data from the marker.
+        Integer clickCount = (Integer) marker.getTag();
+
+
+        // Return false to indicate that we have not consumed the event and that we wish
+        // for the default behavior to occur (which is for the camera to move such that the
+        // marker is centered and for the marker's info window to open, if it has one).
+        return false;
+    }
+
+    @Override
+    public void onPoiClick(PointOfInterest pointOfInterest) {
+        // Clears the previously touched position
+        if (googleMap != null)
+            googleMap.clear();
+
+        // Creating a marker
+        marker = googleMap.addMarker(new MarkerOptions()
+                .position(pointOfInterest.latLng)
+                .title(pointOfInterest.name + " : " + pointOfInterest.placeId));
+
+        // Animating to the touched position
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(pointOfInterest.latLng));
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        // Clears the previously touched position
+        if (googleMap != null)
+            googleMap.clear();
+
+        // Creating a marker
+        marker = googleMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title(latLng.latitude + " : " + latLng.longitude));
+
+        // Animating to the touched position
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
     @Override
@@ -391,7 +530,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
-                }else{
+                } else {
 
                     //TODO : Snackbar for permission denial
                 }
@@ -418,14 +557,14 @@ public class GoogleMapsActivity extends AppCompatActivity
                     @Override
                     public void onComplete(@NonNull Task<PlaceLikelihoodBufferResponse> task) {
 
-                        if(task.isSuccessful() && task.getResult() != null){
+                        if (task.isSuccessful() && task.getResult() != null) {
 
                             PlaceLikelihoodBufferResponse likelyPlaces = task.getResult();
 
                             float maxLikelyVal = 0.0F;
 
                             for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                                if(placeLikelihood.getLikelihood() > maxLikelyVal){
+                                if (placeLikelihood.getLikelihood() > maxLikelyVal) {
 
                                     maxLikelyVal = placeLikelihood.getLikelihood();
                                     currentPlace = placeLikelihood.getPlace().freeze();
@@ -436,7 +575,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                             likelyPlaces.release();
                             Log.d("CURRENT LOCATION", "Current location found.");
-                        }else{
+                        } else {
                             Log.d("CURRENT LOCATION", "Current location is null. Using defaults.");
                             Log.e("CURRENT LOCATION", "Exception: %s", task.getException());
 
@@ -465,5 +604,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             Log.e("Exception: %s", e.getMessage());
         }
     }
+
 
 }

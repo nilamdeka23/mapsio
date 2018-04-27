@@ -12,24 +12,27 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/nav_header_vertical_spacing"
-        app:srcCompat="@android:drawable/sym_def_app_icon" />
+    <com.pkmmte.view.CircularImageView
+        android:id="@+id/account_imageView"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/side_nav_bar"
+        android:scaleType="centerCrop"
+        app:border_color="@android:color/white"
+        app:shadow="true" />
 
     <TextView
+        android:id="@+id/username_textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="John Doe"
+        android:textColor="@android:color/white"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+        android:id="@+id/email_textView"
         android:layout_height="wrap_content"
-        android:text="john.doe@gmail.com" />
+        android:layout_width="wrap_content"
+        android:textColor="@android:color/white" />
 
 </LinearLayout>
