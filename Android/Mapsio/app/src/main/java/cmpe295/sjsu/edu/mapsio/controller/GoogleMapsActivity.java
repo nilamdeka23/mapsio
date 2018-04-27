@@ -59,13 +59,13 @@ import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 //https://gist.github.com/ccabanero/6996756
+
 public class GoogleMapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
-    // will be needed later
     private GoogleMap googleMap;
     // provides access to Google's database of local place and business information.
     private GeoDataClient mGeoDataClient;
@@ -101,13 +101,10 @@ public class GoogleMapsActivity extends AppCompatActivity
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
         }
 
-
         setContentView(R.layout.activity_main);
-
         // init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
@@ -115,7 +112,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         // Prompt the user for permission.
         getLocationPermission();
-
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
 
@@ -175,8 +171,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                     @Override
                     public void onMenuOpened() {
                         Log.d("Search Bar", "Opened");
-
-
                     }
 
                     @Override
@@ -282,8 +276,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                                 new LatLng(38.581572, -121.494400)), null);*/
 
         Task<AutocompletePredictionBufferResponse> results = null;
-        if (currentPlace != null) {
-            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
+//        if (currentPlace != null) {
+//            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
+            LatLng latLng = new LatLng(37.33, -121.88);
             LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
 
 
@@ -316,16 +311,17 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
             });
 
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPlace.getLatLng()));
+//            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPlace.getLatLng()));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             googleMap.animateCamera(CameraUpdateFactory.zoomTo(6));
 
 
-        } else {
-            //TODO : things to do if the current location is not known
-            Log.d("Search", "Current Place is null");
-
-
-        }
+//        } else {
+//            //TODO : things to do if the current location is not known
+//            Log.d("Search", "Current Place is null");
+//
+//
+//        }
     }
 
 
@@ -415,7 +411,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (id == R.id.nav_camera) {
             //Log.d("Navigation menu:" ,"Favorites clicked");
 
-            Intent intent = new Intent(GoogleMapsActivity.this, FavoritesActivity.class);
+            Intent intent = new Intent(this, FavoritesActivity.class);
             startActivity(intent);
             //finish();
         } else if (id == R.id.nav_gallery) {
