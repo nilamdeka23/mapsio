@@ -49,6 +49,10 @@ dependencies {
     compile 'com.google.android.gms:play-services-places:11.8.0'
     // Google Location
     compile 'com.google.android.gms:play-services-location:11.8.0'
+
+    //https://developers.google.com/maps/documentation/android-api/utility/
+    //utility to calculate lallng bounds from current location
+    compile 'com.google.maps.android:android-maps-utils:0.5+'
 }
 
 apply plugin: 'com.google.gms.google-services'

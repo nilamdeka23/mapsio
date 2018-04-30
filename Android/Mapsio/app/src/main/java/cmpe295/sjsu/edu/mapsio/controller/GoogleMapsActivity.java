@@ -1,5 +1,6 @@
 package cmpe295.sjsu.edu.mapsio.controller;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -15,6 +16,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -39,6 +41,7 @@ import com.google.android.gms.location.places.PlaceFilter;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -50,6 +53,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.SphericalUtil;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -58,7 +62,8 @@ import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
-//https://gist.github.com/ccabanero/6996756
+// https://gist.github.com/ccabanero/6996756
+// https://github.com/arimorty/floatingsearchview
 
 public class GoogleMapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
@@ -88,8 +93,8 @@ public class GoogleMapsActivity extends AppCompatActivity
     private ArrayList<String> Number;
     private View ChildView;
     private int RecyclerViewItemPosition;
-
-    private Marker marker;
+    // build the latlng bounds for map
+    private LatLngBounds.Builder builder;
 
 
     @Override
@@ -126,12 +131,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
-                // TODO: null check on map and map lifecycle methods
-                Log.d("Search Text Changed", "Map cleared");
-                //googleMap.clear();
-                //Log.d("Search text: oldQuery: ", oldQuery);
-                //Log.d("Search text: newQuery: ", newQuery);
-                //search(newQuery);
                 searchText.delete(0, searchText.length());
                 searchText.append(newQuery);
             }
@@ -156,8 +155,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             @Override
             public void onSearchAction(String currentQuery) {
-                Log.d("Search Bar:", "Search icon clicked");
-                Log.d("Search text:", searchText.toString());
                 googleMap.clear();
                 search(searchText.toString());
             }
@@ -227,7 +224,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                     // Showing clicked item value on screen using toast message.
                     Toast.makeText(GoogleMapsActivity.this, Number.get(RecyclerViewItemPosition), Toast.LENGTH_LONG).show();
-
                 }
 
                 return false;
@@ -263,71 +259,57 @@ public class GoogleMapsActivity extends AppCompatActivity
         Number.add("TEN");
     }
 
-    public void search(String searchQuery) {
-        Log.d("Search text", searchQuery);
+    public void search(final String searchQuery) {
+        //If location permission is not granted try getting it
+        if (!mLocationPermissionGranted) {
+            getLocationPermission();
+            getDeviceLocation();
+        }
 
-        //getLocationPermission();
-        //getDeviceLocation();
+        Task<AutocompletePredictionBufferResponse> results;
 
+        if (currentPlace != null) {
 
-        /*Task<AutocompletePredictionBufferResponse> results =
-                mGeoDataClient.getAutocompletePredictions(searchQuery,
-                        new LatLngBounds(new LatLng(32.715738, -117.161084),
-                                new LatLng(38.581572, -121.494400)), null);*/
-
-        Task<AutocompletePredictionBufferResponse> results = null;
-//        if (currentPlace != null) {
-//            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
-            LatLng latLng = new LatLng(37.33, -121.88);
+            //this is just taking the center
+            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
             LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
 
+            results = mGeoDataClient.getAutocompletePredictions(searchQuery, latlngBounds, null);
+        } else {
 
-            results =
-                    mGeoDataClient.getAutocompletePredictions(searchQuery,
-                            latlngBounds, null);
+            results = mGeoDataClient.getAutocompletePredictions(searchQuery, null, null);
+        }
 
-            results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
+        results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
 
-                @Override
-                public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
+            @Override
+            public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
 
-                    if (task.isSuccessful() && task.getResult() != null) {
+                if (task.isSuccessful() && task.getResult() != null) {
 
-                        //Holder for the place Ids
-                        ArrayList<String> placeIdList = new ArrayList<>();
+                    //Holder for the place Ids
+                    ArrayList<String> placeIdList = new ArrayList<>();
+                    AutocompletePredictionBufferResponse response = task.getResult();
 
-                        AutocompletePredictionBufferResponse response = task.getResult();
-
-                        for (AutocompletePrediction prediction : response) {
-                            placeIdList.add(prediction.getPlaceId());
-                            Log.d("Predicted places: ", prediction.getPrimaryText(null).toString());
-
-                        }
-
-                        markPlaces(placeIdList);
-                        response.release();
+                    for (AutocompletePrediction prediction : response) {
+                        placeIdList.add(prediction.getPlaceId());
+                        Log.d("Predicted places: ", prediction.getPrimaryText(null).toString());
 
                     }
+
+                    markPlaces(placeIdList, searchQuery);
+                    response.release();
                 }
-            });
+            }
+        });
 
-//            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentPlace.getLatLng()));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            googleMap.animateCamera(CameraUpdateFactory.zoomTo(6));
-
-
-//        } else {
-//            //TODO : things to do if the current location is not known
-//            Log.d("Search", "Current Place is null");
-//
-//
-//        }
     }
 
+    private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
 
-    private void markPlaces(ArrayList<String> placeIdList) {
+        builder = new LatLngBounds.Builder();
 
-        for (String placeId : placeIdList) {
+        /*for (String placeId : placeIdList) {
 
             Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(placeId);
             result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
@@ -342,11 +324,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                         MarkerOptions markerOptions = new MarkerOptions();
 
                         markerOptions.position(currPlace.getLatLng());
+                        builder.include(currPlace.getLatLng());
                         //markerOptions.title(currPlace.getAddress().toString());
                         markerOptions.title(currPlace.getName().toString());
 
-
-                        // TODO: null check on map and map lifecycle methods
                         if (googleMap != null) {
                             googleMap.addMarker(markerOptions);
                         }
@@ -356,7 +337,75 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
             });
 
+        }*/
+
+        //save the place whose name matches the search query
+        Place mostLikelyPlaceByName = null;
+        //save the first place in the list
+        Place firstPlace = null;
+
+        for (int i = 0; i < placeIdList.size(); i++) {
+            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(placeIdList.get(i));
+
+            while (!result.isComplete()) {} // hack to make things synchronous
+
+            PlaceBufferResponse response = result.getResult();
+            Place tempPlace = response.get(0);
+
+            //save the first place
+            if (i == 0) {
+                firstPlace = response.get(0).freeze();
+            }
+
+            //save the place if the name of the place matches the search query
+            if (searchQuery.equalsIgnoreCase(tempPlace.getName().toString())) {
+                mostLikelyPlaceByName = response.get(0).freeze();
+            }
+
+            MarkerOptions markerOptions = new MarkerOptions();
+
+            markerOptions.position(tempPlace.getLatLng());
+            builder.include(tempPlace.getLatLng());
+            markerOptions.title(tempPlace.getName().toString());
+
+            if (googleMap != null) {
+                googleMap.addMarker(markerOptions);
+            }
+
+            response.release();
         }
+
+        if (mostLikelyPlaceByName == null) {
+            mostLikelyPlaceByName = firstPlace;
+        }
+
+        if (currentPlace != null) {
+
+            DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+            int width = displayMetrics.widthPixels;
+            int height = displayMetrics.heightPixels;
+            /*double radiusDegrees = 0.10;
+            LatLng northEast = new LatLng(currentPlace.getLatLng().latitude + radiusDegrees, currentPlace.getLatLng().longitude + radiusDegrees);
+            LatLng southWest = new LatLng(currentPlace.getLatLng().latitude - radiusDegrees, currentPlace.getLatLng().longitude - radiusDegrees);
+            LatLngBounds bounds = LatLngBounds.builder().include(northEast).include(southWest).build();*/
+
+            // 100 miles -> 160934 meters
+            // 50 miles -> 80467.2
+            LatLngBounds bounds = toBounds(currentPlace.getLatLng(), 80467.2);
+
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 10);
+
+            if (googleMap != null) {
+                googleMap.animateCamera(cu);
+            }
+        } else {
+
+            Log.d("markPlaces : ", "Current Place is null");
+            if (googleMap != null && mostLikelyPlaceByName != null) {
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 10));
+            }
+        }
+
     }
 
     /**
@@ -437,6 +486,12 @@ public class GoogleMapsActivity extends AppCompatActivity
         googleMap.setOnMarkerClickListener(this);
 
         googleMap.setOnMapLongClickListener(this);
+
+        if (mLocationPermissionGranted) {
+            enableMyLocation();
+        } else {
+            disableMyLocation();
+        }
     }
 
     /**
@@ -448,7 +503,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         // Retrieve the data from the marker.
         Integer clickCount = (Integer) marker.getTag();
 
-
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
@@ -458,11 +512,12 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     public void onPoiClick(PointOfInterest pointOfInterest) {
         // Clears the previously touched position
+
         if (googleMap != null)
             googleMap.clear();
 
         // Creating a marker
-        marker = googleMap.addMarker(new MarkerOptions()
+        Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(pointOfInterest.latLng)
                 .title(pointOfInterest.name + " : " + pointOfInterest.placeId));
 
@@ -477,7 +532,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             googleMap.clear();
 
         // Creating a marker
-        marker = googleMap.addMarker(new MarkerOptions()
+        Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(latLng)
                 .title(latLng.latitude + " : " + latLng.longitude));
 
@@ -508,8 +563,11 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+
             mLocationPermissionGranted = true;
         } else {
+            mLocationPermissionGranted = false;
+            currentPlace = null;
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
@@ -531,13 +589,15 @@ public class GoogleMapsActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
                 } else {
-
+                    mLocationPermissionGranted = false;
+                    currentPlace = null;
                     //TODO : Snackbar for permission denial
                 }
             }
         }
         // TODO: inform user of permission need
     }
+
 
     /**
      * Gets the current location of the device, and positions the map's camera.
@@ -603,6 +663,33 @@ public class GoogleMapsActivity extends AppCompatActivity
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
+    }
+
+
+    @SuppressLint("MissingPermission")
+    private void enableMyLocation() {
+
+
+        googleMap.setMyLocationEnabled(true);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+    }
+
+    @SuppressLint("MissingPermission")
+    private void disableMyLocation() {
+
+
+        googleMap.setMyLocationEnabled(false);
+        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+    }
+
+
+    public LatLngBounds toBounds(LatLng center, double radiusInMeters) {
+        double distanceFromCenterToCorner = radiusInMeters * Math.sqrt(2.0);
+        LatLng southwestCorner =
+                SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 225.0);
+        LatLng northeastCorner =
+                SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 45.0);
+        return new LatLngBounds(southwestCorner, northeastCorner);
     }
 
 
