@@ -22,13 +22,11 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 
 import cmpe295.sjsu.edu.mapsio.R;
-import cmpe295.sjsu.edu.mapsio.model.AuthRequest;
-import cmpe295.sjsu.edu.mapsio.service.AuthService;
+import cmpe295.sjsu.edu.mapsio.model.AuthRequestModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by nilamdeka on 2/21/18.
@@ -138,24 +136,19 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
             String id = acct.getId();
             String authCode = acct.getServerAuthCode();
 
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(getString(R.string.base_url))
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-
-            AuthService authService = retrofit.create(AuthService.class);
-            Call<AuthRequest> authRequestCall = authService.register(new AuthRequest(acct.getId(),
+            MapsioService mapsioService = MapsioService.Factory.create(this);
+            Call<AuthRequestModel> authRequestCall = mapsioService.register(new AuthRequestModel(id,
                     authCode));
 
-            authRequestCall.enqueue(new Callback<AuthRequest>() {
+            authRequestCall.enqueue(new Callback<AuthRequestModel>() {
                 @Override
-                public void onResponse(Call<AuthRequest> call, Response<AuthRequest> response) {
+                public void onResponse(Call<AuthRequestModel> call, Response<AuthRequestModel> response) {
                     Log.d("RESPONSE", "RESPONSE" + response.toString());
                     // TODO: store in shared preferences
                 }
 
                 @Override
-                public void onFailure(Call<AuthRequest> call, Throwable t) {
+                public void onFailure(Call<AuthRequestModel> call, Throwable t) {
                     Log.d("FAILURE", "FAILURE" + t.toString());
                     // TODO: handle failure condition
                 }

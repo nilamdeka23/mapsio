@@ -30,7 +30,6 @@ import android.widget.Toast;
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBufferResponse;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -57,9 +56,19 @@ import com.google.maps.android.SphericalUtil;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.model.PlaceDetailRequestModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -95,6 +104,9 @@ public class GoogleMapsActivity extends AppCompatActivity
     private int RecyclerViewItemPosition;
     // build the latlng bounds for map
     private LatLngBounds.Builder builder;
+    private Marker marker;
+    private Map<String, LocationMarkerModel> markerMap;
+
 
 
     @Override
@@ -106,6 +118,9 @@ public class GoogleMapsActivity extends AppCompatActivity
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
         }
 
+        // init local marker dictionary/hashmap
+        markerMap = new HashMap<>();
+
         setContentView(R.layout.activity_main);
         // init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -113,8 +128,11 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
+
+        // TODO: identify use;
         // Construct a FusedLocationProviderClient.
-        mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
         // Prompt the user for permission.
         getLocationPermission();
         // Get the current location of the device and set the position of the map.
@@ -501,7 +519,24 @@ public class GoogleMapsActivity extends AppCompatActivity
     public boolean onMarkerClick(final Marker marker) {
 
         // Retrieve the data from the marker.
-        Integer clickCount = (Integer) marker.getTag();
+        LocationMarkerModel locationMarkerModel = markerMap.get(marker.getId());
+        if (locationMarkerModel.getPlaceId() != null) {
+
+            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(locationMarkerModel.getPlaceId());
+            result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
+                @Override
+                public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
+
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        PlaceBufferResponse response = task.getResult();
+                        Place currPlace = response.get(0);
+
+                        response.release();
+                    }
+                }
+            });
+
+        }
 
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
@@ -510,29 +545,47 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPoiClick(PointOfInterest pointOfInterest) {
+    public void onPoiClick(PointOfInterest poi) {
         // Clears the previously touched position
-
         if (googleMap != null)
             googleMap.clear();
 
         // Creating a marker
         Marker marker = googleMap.addMarker(new MarkerOptions()
-                .position(pointOfInterest.latLng)
-                .title(pointOfInterest.name + " : " + pointOfInterest.placeId));
+                .position(poi.latLng)
+                .title(poi.name + " : " + poi.placeId));
+
+        markerMap.put(marker.getId(), new LocationMarkerModel(poi.name, poi.latLng, poi.placeId));
 
         // Animating to the touched position
-        googleMap.animateCamera(CameraUpdateFactory.newLatLng(pointOfInterest.latLng));
+        googleMap.animateCamera(CameraUpdateFactory.newLatLng(poi.latLng));
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
+//        MapsioService mapsioService = MapsioService.Factory.create(this);
+//        Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new PlaceDetailRequestModel(latLng.latitude,
+//                latLng.longitude));
+//
+//        placeDetailRequestCall.enqueue(new Callback<LocationMarkerModel>() {
+//            @Override
+//            public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+//                Log.d("RESPONSE", "RESPONSE" + response.toString());
+//            }
+//
+//            @Override
+//            public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+//                Log.d("FAILURE", "FAILURE" + t.toString());
+//            }
+//
+//        });
+
         // Clears the previously touched position
         if (googleMap != null)
             googleMap.clear();
 
         // Creating a marker
-        Marker marker = googleMap.addMarker(new MarkerOptions()
+        marker = googleMap.addMarker(new MarkerOptions()
                 .position(latLng)
                 .title(latLng.latitude + " : " + latLng.longitude));
 
@@ -659,7 +712,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                         }
                     }
                 });*/
+
             }
+
         } catch (SecurityException e) {
             Log.e("Exception: %s", e.getMessage());
         }
