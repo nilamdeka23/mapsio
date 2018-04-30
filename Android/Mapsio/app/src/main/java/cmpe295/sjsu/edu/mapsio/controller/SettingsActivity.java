@@ -107,4 +107,5 @@ public class SettingsActivity extends AppCompatActivity implements GoogleApiClie
         Toast.makeText(SettingsActivity.this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
 
     }
+
 }

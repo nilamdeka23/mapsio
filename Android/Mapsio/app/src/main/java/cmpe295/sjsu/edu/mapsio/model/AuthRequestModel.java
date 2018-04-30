@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by nilamdeka on 3/13/18.
  */
 
-public class AuthRequest {
+public class AuthRequestModel {
 
     @SerializedName("id")
     @Expose
@@ -17,10 +17,10 @@ public class AuthRequest {
     @Expose
     private String authCode;
 
-    public AuthRequest() {
+    public AuthRequestModel() {
     }
 
-    public AuthRequest(String id, String authCode) {
+    public AuthRequestModel(String id, String authCode) {
         this.id = id;
         this.authCode = authCode;
     }
