@@ -44,7 +44,6 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -56,19 +55,13 @@ import com.google.maps.android.SphericalUtil;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.model.PlaceDetailRequestModel;
-import cmpe295.sjsu.edu.mapsio.service.MapsioService;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -104,9 +97,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     private int RecyclerViewItemPosition;
     // build the latlng bounds for map
     private LatLngBounds.Builder builder;
-    private Marker marker;
     private Map<String, LocationMarkerModel> markerMap;
-
 
 
     @Override
@@ -139,7 +130,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         getDeviceLocation();
 
         // init map
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
@@ -178,8 +169,9 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         });
 
-        //mSearchView.attachNavigationDrawerToMenuButton(drawer);
-        //this is for hamburger icon
+        // this is for hamburger icon
+//        mSearchView.attachNavigationDrawerToMenuButton(drawer);
+
         mSearchView.setOnLeftMenuClickListener(
                 new FloatingSearchView.OnLeftMenuClickListener() {
 
@@ -324,7 +316,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
-
+        // TODO: is this needed?
         builder = new LatLngBounds.Builder();
 
         /*for (String placeId : placeIdList) {
@@ -387,7 +379,9 @@ public class GoogleMapsActivity extends AppCompatActivity
             markerOptions.title(tempPlace.getName().toString());
 
             if (googleMap != null) {
-                googleMap.addMarker(markerOptions);
+                Marker marker = googleMap.addMarker(markerOptions);
+                markerMap.put(marker.getId(), new LocationMarkerModel(tempPlace.getName().toString(),
+                        tempPlace.getLatLng(), tempPlace.getId()));
             }
 
             response.release();
@@ -579,18 +573,18 @@ public class GoogleMapsActivity extends AppCompatActivity
 //            }
 //
 //        });
-
-        // Clears the previously touched position
-        if (googleMap != null)
-            googleMap.clear();
-
-        // Creating a marker
-        marker = googleMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .title(latLng.latitude + " : " + latLng.longitude));
-
-        // Animating to the touched position
-        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+//
+//        // Clears the previously touched position
+//        if (googleMap != null)
+//            googleMap.clear();
+//
+//        // Creating a marker
+//        Marker marker = googleMap.addMarker(new MarkerOptions()
+//                .position(latLng)
+//                .title(latLng.latitude + " : " + latLng.longitude));
+//
+//        // Animating to the touched position
+//        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
     @Override
