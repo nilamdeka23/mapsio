@@ -3,7 +3,6 @@ package cmpe295.sjsu.edu.mapsio.controller;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -58,17 +57,10 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.model.PlaceDetailRequestModel;
-import cmpe295.sjsu.edu.mapsio.service.MapsioService;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -90,9 +82,6 @@ public class GoogleMapsActivity extends AppCompatActivity
     private FusedLocationProviderClient mFusedLocationProviderClient;
 
     private boolean mLocationPermissionGranted;
-    // The geographical location where the device is currently located. That is, the last-known
-    // location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
 
     //current place where the device is located
     private Place currentPlace;
@@ -102,21 +91,13 @@ public class GoogleMapsActivity extends AppCompatActivity
     private ArrayList<String> Number;
     private View ChildView;
     private int RecyclerViewItemPosition;
-    // build the latlng bounds for map
-    private LatLngBounds.Builder builder;
     private Marker marker;
     private Map<String, LocationMarkerModel> markerMap;
-
-
+    private FloatingSearchView mSearchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Retrieve location and camera position from saved instance state.
-        if (savedInstanceState != null) {
-            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-        }
 
         // init local marker dictionary/hashmap
         markerMap = new HashMap<>();
@@ -129,10 +110,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
 
-        // TODO: identify use;
-        // Construct a FusedLocationProviderClient.
-        // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
         // Prompt the user for permission.
         getLocationPermission();
         // Get the current location of the device and set the position of the map.
@@ -143,16 +120,8 @@ public class GoogleMapsActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        //Save search text in the search bar
         final StringBuffer searchText = new StringBuffer();
-
-        FloatingSearchView mSearchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
-        mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
-            @Override
-            public void onSearchTextChanged(String oldQuery, final String newQuery) {
-                searchText.delete(0, searchText.length());
-                searchText.append(newQuery);
-            }
-        });
 
         // init drawer layout
         final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -165,9 +134,23 @@ public class GoogleMapsActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        //Search Bar
+        mSearchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
+
+        //Listener for search text changes
+        mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
+            @Override
+            public void onSearchTextChanged(String oldQuery, final String newQuery) {
+                searchText.delete(0, searchText.length());
+                searchText.append(newQuery);
+            }
+        });
+
+
         mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                Log.d("Search Bar","onSuggestionClicked");
 
             }
 
@@ -178,21 +161,16 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         });
 
-        //mSearchView.attachNavigationDrawerToMenuButton(drawer);
-        //this is for hamburger icon
-        mSearchView.setOnLeftMenuClickListener(
-                new FloatingSearchView.OnLeftMenuClickListener() {
+        //Listener for clicks on the mic in the search bar
+        mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
+            @Override
+            public void onActionMenuItemSelected(MenuItem item) {
 
-                    @Override
-                    public void onMenuOpened() {
-                        Log.d("Search Bar", "Opened");
-                    }
+                Log.d("Mic clicked", item.getTitle().toString());
+                startVoiceRecognition();
+            }
 
-                    @Override
-                    public void onMenuClosed() {
-                        Log.d("Search Bar", "Closed");
-                    }
-                });
+        });
 
         String name = getIntent().getStringExtra("name");
         String email = getIntent().getStringExtra("email");
@@ -325,38 +303,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
 
-        builder = new LatLngBounds.Builder();
-
-        /*for (String placeId : placeIdList) {
-
-            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(placeId);
-            result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
-                @Override
-                public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
-
-
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        PlaceBufferResponse response = task.getResult();
-                        Place currPlace = response.get(0);
-
-                        MarkerOptions markerOptions = new MarkerOptions();
-
-                        markerOptions.position(currPlace.getLatLng());
-                        builder.include(currPlace.getLatLng());
-                        //markerOptions.title(currPlace.getAddress().toString());
-                        markerOptions.title(currPlace.getName().toString());
-
-                        if (googleMap != null) {
-                            googleMap.addMarker(markerOptions);
-                        }
-
-                        response.release();
-                    }
-                }
-            });
-
-        }*/
-
         //save the place whose name matches the search query
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
@@ -383,7 +329,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             MarkerOptions markerOptions = new MarkerOptions();
 
             markerOptions.position(tempPlace.getLatLng());
-            builder.include(tempPlace.getLatLng());
+
             markerOptions.title(tempPlace.getName().toString());
 
             if (googleMap != null) {
@@ -402,10 +348,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
             int width = displayMetrics.widthPixels;
             int height = displayMetrics.heightPixels;
-            /*double radiusDegrees = 0.10;
-            LatLng northEast = new LatLng(currentPlace.getLatLng().latitude + radiusDegrees, currentPlace.getLatLng().longitude + radiusDegrees);
-            LatLng southWest = new LatLng(currentPlace.getLatLng().latitude - radiusDegrees, currentPlace.getLatLng().longitude - radiusDegrees);
-            LatLngBounds bounds = LatLngBounds.builder().include(northEast).include(southWest).build();*/
 
             // 100 miles -> 160934 meters
             // 50 miles -> 80467.2
@@ -424,17 +366,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         }
 
-    }
-
-    /**
-     * Saves the state of the map when the activity is paused.
-     */
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        if (googleMap != null) {
-            outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
-            super.onSaveInstanceState(outState);
-        }
     }
 
     @Override
@@ -481,7 +412,10 @@ public class GoogleMapsActivity extends AppCompatActivity
             Intent intent = new Intent(this, FavoritesActivity.class);
             startActivity(intent);
             //finish();
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.nav_settings) {
+
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -618,8 +552,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                 == PackageManager.PERMISSION_GRANTED) {
 
             mLocationPermissionGranted = true;
+            enableMyLocation();
         } else {
             mLocationPermissionGranted = false;
+            disableMyLocation();
             currentPlace = null;
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -641,8 +577,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
+                    enableMyLocation();
                 } else {
                     mLocationPermissionGranted = false;
+                    disableMyLocation();
                     currentPlace = null;
                     //TODO : Snackbar for permission denial
                 }
@@ -697,22 +635,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                     }
                 });
 
-
-                //Task<Location> locationResult = mFusedLocationProviderClient.getLastLocation();
-              /*  locationResult.addOnCompleteListener(this, new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            mLastKnownLocation = task.getResult();
-                            Log.d("CURRENT LOCATION", "Current location is found.");
-                        } else {
-                            Log.d("CURRENT LOCATION", "Current location is null. Using defaults.");
-                            Log.e("CURRENT LOCATION", "Exception: %s", task.getException());
-                        }
-                    }
-                });*/
-
             }
 
         } catch (SecurityException e) {
@@ -724,17 +646,19 @@ public class GoogleMapsActivity extends AppCompatActivity
     @SuppressLint("MissingPermission")
     private void enableMyLocation() {
 
-
-        googleMap.setMyLocationEnabled(true);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        if(googleMap!=null) {
+            googleMap.setMyLocationEnabled(true);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        }
     }
 
     @SuppressLint("MissingPermission")
     private void disableMyLocation() {
 
-
-        googleMap.setMyLocationEnabled(false);
-        googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+        if(googleMap!=null) {
+            googleMap.setMyLocationEnabled(false);
+            googleMap.getUiSettings().setMyLocationButtonEnabled(false);
+        }
     }
 
 
@@ -746,6 +670,31 @@ public class GoogleMapsActivity extends AppCompatActivity
                 SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 45.0);
         return new LatLngBounds(southwestCorner, northeastCorner);
     }
+
+
+    final int VOICE_SEARCH_CODE = 3012;
+
+    public void startVoiceRecognition() {
+        Intent intent = new Intent("android.speech.action.RECOGNIZE_SPEECH");
+        intent.putExtra("android.speech.extra.LANGUAGE_MODEL", "free_form");
+        intent.putExtra("android.speech.extra.PROMPT", "Speak Now");
+        this.startActivityForResult(intent, VOICE_SEARCH_CODE);
+    }
+
+    @ Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == VOICE_SEARCH_CODE && resultCode == RESULT_OK) {
+            ArrayList < String > matches = data
+                    .getStringArrayListExtra("android.speech.extra.RESULTS");
+            if(mSearchView!=null) {
+
+                mSearchView.setSearchText(matches.get(0));
+                search(matches.get(0));
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
 
 
 }

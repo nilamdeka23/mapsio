@@ -12,5 +12,6 @@
     <color name="item_name">#535353</color>
     <color name="description">#a9a9a9</color>
     <color name="light_grey">#EEEEEE</color>
+    <color name="white">#FFFFFF</color>
 
 </resources>

@@ -32,10 +32,8 @@
             app:floatingSearch_suggestionsListAnimDuration="250"
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_close_search_on_keyboard_dismiss="true"
-            app:floatingSearch_showVoiceInput="true"
-            app:floatingSearch_voiceRecHint="Say something..." />
+            app:floatingSearch_menu="@menu/menu_main"/>
 
-        <!--app:floatingSearch_leftActionMode="showHamburger"-->
 
         <include
             android:id="@+id/marker_desc_layout"

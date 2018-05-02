@@ -59,7 +59,6 @@
             android:name=".controller.FavoritesActivity"
             android:label="Favorites"
             android:theme="@style/AppTheme.NoActionBar">
-
         </activity>
     </application>
 
