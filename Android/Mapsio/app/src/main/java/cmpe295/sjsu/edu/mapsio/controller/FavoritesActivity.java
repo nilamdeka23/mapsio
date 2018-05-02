@@ -14,18 +14,20 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.FavoritesListAdapter;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.util.RecyclerItemTouchHelper;
 import cmpe295.sjsu.edu.mapsio.controller.listener.RecyclerTouchListener;
-import cmpe295.sjsu.edu.mapsio.model.MyGooglePlaces;
 
 public class FavoritesActivity extends AppCompatActivity implements RecyclerItemTouchHelper.RecyclerItemTouchHelperListener, FavoritesListAdapter.FavDirectionsClickListener, FavoritesListAdapter.FavLocationClickListener {
 
-    private List<MyGooglePlaces> favPlaceList = new ArrayList<>();
+    private List<LocationMarkerModel> favortiteLocations = new ArrayList<>();
     private FavoritesListAdapter mAdapter;
     private CoordinatorLayout coordinatorLayout;
 
@@ -37,7 +39,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
         setSupportActionBar(toolbar);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.fav_coordinator_layout);
-        mAdapter = new FavoritesListAdapter(this, favPlaceList);
+        mAdapter = new FavoritesListAdapter(this, favortiteLocations);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.fav_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -48,7 +50,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
             @Override
             public void onClick(View view, int position) {
-                final MyGooglePlaces place = favPlaceList.get(position);
+                final LocationMarkerModel favoriteLocation = favortiteLocations.get(position);
                 Log.i("Position Clicked : ", position + "");
             }
 
@@ -70,10 +72,10 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if (viewHolder instanceof FavoritesListAdapter.MyViewHolder) {
             // get the removed item name to display it in snack bar
-            String name = favPlaceList.get(viewHolder.getAdapterPosition()).getName();
+            String name = favortiteLocations.get(viewHolder.getAdapterPosition()).getName();
 
             // backup of removed item for undo purpose
-            final MyGooglePlaces deletedItem = favPlaceList.get(viewHolder.getAdapterPosition());
+            final LocationMarkerModel deletedLocation = favortiteLocations.get(viewHolder.getAdapterPosition());
             final int deletedIndex = viewHolder.getAdapterPosition();
 
             // remove the item from recycler view
@@ -87,7 +89,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
                 public void onClick(View view) {
 
                     // undo is selected, restore the deleted item
-                    mAdapter.restoreItem(deletedItem, deletedIndex);
+                    mAdapter.restoreItem(deletedLocation, deletedIndex);
                 }
             });
             snackbar.setActionTextColor(Color.YELLOW);
@@ -97,28 +99,25 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
     private void prepareFavListData() {
 
-        MyGooglePlaces places = new MyGooglePlaces("Nepenthe", "Restaurant");
-        favPlaceList.add(places);
-
-        places = new MyGooglePlaces("SJPL", "Library");
-        favPlaceList.add(places);
-
-        places = new MyGooglePlaces("SJSU", "School");
-        favPlaceList.add(places);
-
-        places = new MyGooglePlaces("Lees Sandwich", "Restaurant");
-        favPlaceList.add(places);
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        favortiteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
 
         mAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onDirectionClick(MyGooglePlaces myGooglePlace) {
+    public void onDirectionClick(LocationMarkerModel locationMarkerModel) {
         Log.i("Directions CLicked : ", "Directions Clicked ");
     }
 
     @Override
-    public void onLocationClick(MyGooglePlaces myGooglePlace) {
+    public void onLocationClick(LocationMarkerModel locationMarkerModel) {
         Log.i("Locations CLicked : ", "Locations Clicked ");
     }
 

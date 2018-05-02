@@ -7,19 +7,21 @@ public class LocationMarkerModel {
     private String address;
     private String imageURL;
     private boolean isFavorite;
-    private LatLng latLng;
+    private double latitide;
+    private double longitude;
     private String name;
     private String placeId;
+    private float rating;
 
     public LocationMarkerModel() {
     }
 
     public LocationMarkerModel(String name, LatLng latLng, String placeId) {
         this.name = name;
-        this.latLng = latLng;
+        this.latitide = latLng.latitude;
+        this.longitude = latLng.longitude;
         this.placeId = placeId;
     }
-
 
     public String getName() {
         return name;
@@ -61,13 +63,28 @@ public class LocationMarkerModel {
         this.placeId = placeId;
     }
 
-
-    public LatLng getLatLng() {
-        return latLng;
+    public double getLatitide() {
+        return latitide;
     }
 
-    public void setLatLng(LatLng latLng) {
-        this.latLng = latLng;
+    public void setLatitide(double latitide) {
+        this.latitide = latitide;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public float getRating() {
+        return rating;
+    }
+
+    public void setRating(float rating) {
+        this.rating = rating;
     }
 
 }

@@ -1,7 +1,9 @@
 package cmpe295.sjsu.edu.mapsio.controller;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -130,45 +132,62 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
-            String accountName = acct.getDisplayName();
-            String accountEmail = acct.getEmail();
-            Uri accountPic = acct.getPhotoUrl();
-            String id = acct.getId();
+            final String accountName = acct.getDisplayName();
+            final String accountEmail = acct.getEmail();
+            final Uri accountPic = acct.getPhotoUrl();
+            final String userId = acct.getId();
             String authCode = acct.getServerAuthCode();
 
             MapsioService mapsioService = MapsioService.Factory.create(this);
-            Call<AuthRequestModel> authRequestCall = mapsioService.register(new AuthRequestModel(id,
+            Call<AuthRequestModel> authRequestCall = mapsioService.register(new AuthRequestModel(userId,
                     authCode));
 
             authRequestCall.enqueue(new Callback<AuthRequestModel>() {
+
                 @Override
                 public void onResponse(Call<AuthRequestModel> call, Response<AuthRequestModel> response) {
-                    Log.d("RESPONSE", "RESPONSE" + response.toString());
-                    // TODO: store in shared preferences
+                    Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Success " +
+                            response.toString(), Toast.LENGTH_SHORT).show();
+
+                    // store data as local cache
+                    storeUserIdInSharedPreferences(userId);
+
+                    Intent intent = new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class);
+//                  Intent intent = new Intent(GoogleSigninActivity.this, SettingsActivity.class);
+                    intent.putExtra("name", accountName);
+                    intent.putExtra("email", accountEmail);
+                    if (accountPic != null) {
+                        intent.putExtra("profile_url", accountPic.toString());
+                    }
+
+                    startActivity(intent);
+                    finish();
                 }
 
                 @Override
                 public void onFailure(Call<AuthRequestModel> call, Throwable t) {
-                    Log.d("FAILURE", "FAILURE" + t.toString());
-                    // TODO: handle failure condition
+
+                    Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Fail " +
+                            t.toString(), Toast.LENGTH_SHORT).show();
                 }
 
             });
 
-            Intent intent = new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class);
-//            Intent intent = new Intent(GoogleSigninActivity.this, SettingsActivity.class);
-            intent.putExtra("name", accountName);
-            intent.putExtra("email", accountEmail);
-            if (accountPic != null) {
-                intent.putExtra("profile_url", accountPic.toString());
-            }
-
-            startActivity(intent);
-            finish();
         } else {
-
-            Toast.makeText(this, "SignIn" + result.toString(), Toast.LENGTH_SHORT).show();
+            // TODO: come up with a better message
+            Toast.makeText(GoogleSigninActivity.this, "SignIn Failure " + result.toString(),
+                    Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void storeUserIdInSharedPreferences(String userId) {
+
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data",
+                Context.MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("user_id", userId);
+        editor.apply();
     }
 
     private void showProgressDialog() {
@@ -192,7 +211,9 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO: handle connection failure
+        // TODO: come up with a better message
+        Toast.makeText(GoogleSigninActivity.this, "SignIn Connection Failure " +
+                connectionResult.toString(), Toast.LENGTH_SHORT).show();
     }
 
 }

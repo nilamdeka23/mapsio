@@ -2,6 +2,8 @@ package cmpe295.sjsu.edu.mapsio.service;
 
 import android.content.Context;
 
+import java.util.List;
+
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.model.AuthRequestModel;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
@@ -10,7 +12,9 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Path;
 
 public interface MapsioService {
 
@@ -19,6 +23,9 @@ public interface MapsioService {
 
     @POST("/api/place/detail")
     Call<LocationMarkerModel> getPlaceDetail(@Body PlaceDetailRequestModel placeDetailRequest);
+
+    @GET("/api/trips/{userId}")
+    Call<List<LocationMarkerModel>> getRecommendedLocations(@Path("userId") String userId);
 
     class Factory {
         public static MapsioService create(Context context) {
