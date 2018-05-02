@@ -1,7 +1,9 @@
 package cmpe295.sjsu.edu.mapsio.controller;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -57,12 +59,17 @@ import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -94,8 +101,8 @@ public class GoogleMapsActivity extends AppCompatActivity
     private static final String KEY_LOCATION = "location";
 
     private ArrayList<LocationMarkerModel> recommendedLocations;
-    private View ChildView;
-    private int RecyclerViewItemPosition;
+    private View childView;
+    private int recyclerViewItemPosition;
     // build the latlng bounds for map
     private LatLngBounds.Builder builder;
     private Map<String, LocationMarkerModel> markerMap;
@@ -234,15 +241,15 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public boolean onInterceptTouchEvent(RecyclerView Recyclerview, MotionEvent motionEvent) {
 
-                ChildView = Recyclerview.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
+                childView = Recyclerview.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
 
-                if (ChildView != null && gestureDetector.onTouchEvent(motionEvent)) {
+                if (childView != null && gestureDetector.onTouchEvent(motionEvent)) {
 
                     //Getting clicked value.
-                    RecyclerViewItemPosition = Recyclerview.getChildAdapterPosition(ChildView);
+                    recyclerViewItemPosition = Recyclerview.getChildAdapterPosition(childView);
 
                     // Showing clicked item value on screen using toast message.
-                    Toast.makeText(GoogleMapsActivity.this, recommendedLocations.get(RecyclerViewItemPosition).getName(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(GoogleMapsActivity.this, recommendedLocations.get(recyclerViewItemPosition).getName(), Toast.LENGTH_LONG).show();
                 }
 
                 return false;
@@ -264,36 +271,37 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     // function to add items in RecyclerView.
     public void AddItemsToRecyclerViewArrayList() {
+        // get user id from local cache
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("user_id","");
 
-        // TODO: API CALL DONE!
-//        MapsioService mapsioService = MapsioService.Factory.create(this);
-//        // TODO: add user id from shared preferences
-//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations("userID");
-//
-//        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
-//            @Override
-//            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
-//                Log.d("RESPONSE", "RESPONSE" + response.toString());
-//                recommendedLocations = new ArrayList<>(response.body());
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
-//                Log.d("FAILURE", "FAILURE" + t.toString());
-//            }
-//
-//        });
+        MapsioService mapsioService = MapsioService.Factory.create(this);
+        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId);
 
-        // TODO: remove dummy data
-        recommendedLocations = new ArrayList<>();
-        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "PLACEID"));
+        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
+            @Override
+            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
+                Log.d("RESPONSE", "RESPONSE" + response.toString());
+                recommendedLocations = new ArrayList<>(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
+                Log.d("FAILURE", "FAILURE" + t.toString());
+            }
+
+        });
+
+//        // TODO: remove dummy data
+//        recommendedLocations = new ArrayList<>();
+//        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "PLACEID"));
+//        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "PLACEID"));
     }
 
     public void search(final String searchQuery) {
