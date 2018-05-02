@@ -22,4 +22,10 @@
         <item name="android:windowBackground">@drawable/splash_bg</item>
     </style>
 
+    <style name="RatingBar" parent="Theme.AppCompat">
+        <item name="colorControlNormal">#FDD835</item>
+        <item name="colorControlActivated">#FDD835</item>
+    </style>
+
+
 </resources>

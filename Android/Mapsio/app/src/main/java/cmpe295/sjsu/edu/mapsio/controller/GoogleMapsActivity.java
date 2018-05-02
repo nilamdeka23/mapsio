@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -69,7 +70,7 @@ import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
 
 public class GoogleMapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
-        GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener {
+        GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMapClickListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
 
@@ -92,12 +93,15 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     private static final String KEY_LOCATION = "location";
 
-    private ArrayList<String> Number;
+    private ArrayList<LocationMarkerModel> recommendedLocations;
     private View ChildView;
     private int RecyclerViewItemPosition;
     // build the latlng bounds for map
     private LatLngBounds.Builder builder;
     private Map<String, LocationMarkerModel> markerMap;
+
+    private View markerDescLayout;
+    private RecyclerView recommendationsRecyclerView;
 
 
     @Override
@@ -109,10 +113,14 @@ public class GoogleMapsActivity extends AppCompatActivity
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
         }
 
+        setContentView(R.layout.activity_main);
+
         // init local marker dictionary/hashmap
         markerMap = new HashMap<>();
 
-        setContentView(R.layout.activity_main);
+        // init marker description layout
+        markerDescLayout = findViewById(R.id.marker_desc_layout);
+
         // init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -124,18 +132,19 @@ public class GoogleMapsActivity extends AppCompatActivity
         // Construct a FusedLocationProviderClient.
         // mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        // Prompt the user for permission.
-        getLocationPermission();
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
+        // TODO: is this needed here?
+//        // Prompt the user for permission.
+//        getLocationPermission();
+//        // Get the current location of the device and set the position of the map.
+//        getDeviceLocation();
 
         // init map
         CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        // init search view
         final StringBuffer searchText = new StringBuffer();
-
         FloatingSearchView mSearchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
         mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
@@ -199,17 +208,17 @@ public class GoogleMapsActivity extends AppCompatActivity
         ImageView profilePicImageView = (ImageView) header.findViewById(R.id.account_imageView);
         Picasso.with(this).load(pic).into(profilePicImageView);
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
+        recommendationsRecyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
         // Adding items to RecyclerView.
         AddItemsToRecyclerViewArrayList();
 
-        RecommendationsViewAdapter RecyclerViewHorizontalAdapter = new RecommendationsViewAdapter(Number);
+        RecommendationsViewAdapter RecyclerViewHorizontalAdapter = new RecommendationsViewAdapter(recommendedLocations, this);
         LinearLayoutManager HorizontalLayout = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
-        recyclerView.setLayoutManager(HorizontalLayout);
-        recyclerView.setAdapter(RecyclerViewHorizontalAdapter);
+        recommendationsRecyclerView.setLayoutManager(HorizontalLayout);
+        recommendationsRecyclerView.setAdapter(RecyclerViewHorizontalAdapter);
 
         // Adding on item click listener to RecyclerView.
-        recyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
+        recommendationsRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
 
             GestureDetector gestureDetector = new GestureDetector(GoogleMapsActivity.this, new GestureDetector.SimpleOnGestureListener() {
 
@@ -233,7 +242,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     RecyclerViewItemPosition = Recyclerview.getChildAdapterPosition(ChildView);
 
                     // Showing clicked item value on screen using toast message.
-                    Toast.makeText(GoogleMapsActivity.this, Number.get(RecyclerViewItemPosition), Toast.LENGTH_LONG).show();
+                    Toast.makeText(GoogleMapsActivity.this, recommendedLocations.get(RecyclerViewItemPosition).getName(), Toast.LENGTH_LONG).show();
                 }
 
                 return false;
@@ -256,17 +265,35 @@ public class GoogleMapsActivity extends AppCompatActivity
     // function to add items in RecyclerView.
     public void AddItemsToRecyclerViewArrayList() {
 
-        Number = new ArrayList<>();
-        Number.add("ONEAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaa");
-        Number.add("TWO");
-        Number.add("THREE");
-        Number.add("FOUR");
-        Number.add("FIVE");
-        Number.add("SIX");
-        Number.add("SEVEN");
-        Number.add("EIGHT");
-        Number.add("NINE");
-        Number.add("TEN");
+        // TODO: API CALL DONE!
+//        MapsioService mapsioService = MapsioService.Factory.create(this);
+//        // TODO: add user id from shared preferences
+//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations("userID");
+//
+//        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
+//            @Override
+//            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
+//                Log.d("RESPONSE", "RESPONSE" + response.toString());
+//                recommendedLocations = new ArrayList<>(response.body());
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
+//                Log.d("FAILURE", "FAILURE" + t.toString());
+//            }
+//
+//        });
+
+        // TODO: remove dummy data
+        recommendedLocations = new ArrayList<>();
+        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "PLACEID"));
     }
 
     public void search(final String searchQuery) {
@@ -494,10 +521,9 @@ public class GoogleMapsActivity extends AppCompatActivity
         this.googleMap = googleMap;
 
         googleMap.setOnPoiClickListener(this);
-
         googleMap.setOnMarkerClickListener(this);
-
         googleMap.setOnMapLongClickListener(this);
+        googleMap.setOnMapClickListener(this);
 
         if (mLocationPermissionGranted) {
             enableMyLocation();
@@ -524,6 +550,17 @@ public class GoogleMapsActivity extends AppCompatActivity
                     if (task.isSuccessful() && task.getResult() != null) {
                         PlaceBufferResponse response = task.getResult();
                         Place currPlace = response.get(0);
+
+                        ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
+                        TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
+                        TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
+                        Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
+                        Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
+
+                        locationTitleTextView.setText(currPlace.getName());
+                        locationDescTextView.setText(currPlace.getAddress());
+                        recommendationsRecyclerView.setVisibility(View.INVISIBLE);
+                        markerDescLayout.setVisibility(View.VISIBLE);
 
                         response.release();
                     }
@@ -585,6 +622,12 @@ public class GoogleMapsActivity extends AppCompatActivity
 //
 //        // Animating to the touched position
 //        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+    }
+
+    @Override
+    public void onMapClick(LatLng latLng) {
+        recommendationsRecyclerView.setVisibility(View.VISIBLE);
+        markerDescLayout.setVisibility(View.INVISIBLE);
     }
 
     @Override

@@ -5,14 +5,18 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
 import cmpe295.sjsu.edu.mapsio.R;
-import cmpe295.sjsu.edu.mapsio.model.MyGooglePlaces;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 
 /**
  * Created by laddu on 3/12/18.
@@ -20,39 +24,42 @@ import cmpe295.sjsu.edu.mapsio.model.MyGooglePlaces;
 
 public class FavoritesListAdapter extends RecyclerView.Adapter<FavoritesListAdapter.MyViewHolder> {
     private Context context;
-    private List<MyGooglePlaces> favList;
+    private List<LocationMarkerModel> favoriteList;
     private FavDirectionsClickListener directionsClickListener;
     private FavLocationClickListener locClickListener;
 
-
     public interface FavDirectionsClickListener {
-        void onDirectionClick(MyGooglePlaces myGooglePlace);
+        void onDirectionClick(LocationMarkerModel favoriteLocation);
     }
 
     public interface FavLocationClickListener {
-        void onLocationClick(MyGooglePlaces myGooglePlace);
+        void onLocationClick(LocationMarkerModel favoriteLocation);
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView name, category;
+        public TextView locationName, locationAddress;
         public LinearLayout favDirectionsLayout, favLocationLayout;
         public RelativeLayout viewBackground;
         public LinearLayout viewForeground;
+        public ImageView locationImage;
+        public RatingBar locationRating;
 
         public MyViewHolder(View view) {
             super(view);
-            name = (TextView) view.findViewById(R.id.name);
-            category = (TextView) view.findViewById(R.id.category);
+            locationName = (TextView) view.findViewById(R.id.location_name);
+            locationAddress = (TextView) view.findViewById(R.id.location_address);
             viewForeground =(LinearLayout) view.findViewById(R.id.view_foreground);
             viewBackground =(RelativeLayout) view.findViewById(R.id.view_background);
             favLocationLayout = (LinearLayout) view.findViewById(R.id.fav_location_layout);
             favDirectionsLayout = (LinearLayout) view.findViewById(R.id.fav_direction_layout);
+            locationImage = (ImageView) view.findViewById(R.id.location_image);
+            locationRating = (RatingBar) view.findViewById(R.id.location_rating);
         }
     }
 
-    public FavoritesListAdapter(Context context, List<MyGooglePlaces> favList) {
+    public FavoritesListAdapter(Context context, List<LocationMarkerModel> favoriteList) {
         this.context = context;
-        this.favList = favList;
+        this.favoriteList = favoriteList;
         this.directionsClickListener = (FavDirectionsClickListener) context;
         this.locClickListener = (FavLocationClickListener) context;
     }
@@ -67,14 +74,17 @@ public class FavoritesListAdapter extends RecyclerView.Adapter<FavoritesListAdap
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position) {
-        MyGooglePlaces place = favList.get(position);
-        holder.name.setText(place.getName());
-        holder.category.setText(place.getCategory());
+        final LocationMarkerModel favoriteLocation = favoriteList.get(position);
+
+        Picasso.with(context).load(favoriteLocation.getImageURL()).into(holder.locationImage);
+        holder.locationName.setText(favoriteLocation.getName());
+        holder.locationAddress.setText(favoriteLocation.getAddress());
+        holder.locationRating.setRating(favoriteLocation.getRating());
         holder.favDirectionsLayout.setOnClickListener(new View.OnClickListener(){
 
             @Override
             public void onClick(View view) {
-                directionsClickListener.onDirectionClick(favList.get(holder.getAdapterPosition()));
+                directionsClickListener.onDirectionClick(favoriteLocation);
 
             }
         });
@@ -82,32 +92,27 @@ public class FavoritesListAdapter extends RecyclerView.Adapter<FavoritesListAdap
         holder.favLocationLayout.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                locClickListener.onLocationClick(favList.get(holder.getAdapterPosition()));
+                locClickListener.onLocationClick(favoriteLocation);
             }
 
         });
-        //   holder.year.setText(movie.getYear());
-        //TODO: check what the Glide library is doing here
-        /*Glide.with(context)
-                .load(item.getThumbnail())
-                .into(holder.thumbnail); */
     }
 
     @Override
     public int getItemCount() {
-        return favList.size();
+        return favoriteList.size();
     }
 
     public void removeItem(int position) {
-        favList.remove(position);
+        favoriteList.remove(position);
         // notify the item removed by position
         // to perform recycler view delete animations
         // NOTE: don't call notifyDataSetChanged()
         notifyItemRemoved(position);
     }
 
-    public void restoreItem(MyGooglePlaces item, int position) {
-        favList.add(position, item);
+    public void restoreItem(LocationMarkerModel favoriteLocation, int position) {
+        favoriteList.add(position, favoriteLocation);
         // notify item added by position
         notifyItemInserted(position);
     }

@@ -15,7 +15,7 @@
         android:layout_height="match_parent">
 
         <ImageView
-            android:id="@+id/recommendation_imageView"
+            android:id="@+id/recommendation_image"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:layout_centerHorizontal="true"
@@ -27,7 +27,7 @@
             android:id="@+id/recommendation_title"
             android:layout_width="72dp"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/recommendation_imageView"
+            android:layout_below="@+id/recommendation_image"
             android:layout_centerHorizontal="true"
             android:gravity="center"
             android:layout_marginTop="4dp"
