@@ -15,4 +15,5 @@
     <string name="confirm">Are you sure?</string>
     <!-- Added for favorite list -->
     <string name="undo">undo</string>
+    <string name="about_us_text"> About Us</string>
 </resources>

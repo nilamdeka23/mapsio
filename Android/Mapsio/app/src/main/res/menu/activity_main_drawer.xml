@@ -15,9 +15,9 @@
             android:icon="@mipmap/ic_launcher"
             android:title="Help" />
         <item
-            android:id="@+id/nav_manage"
+            android:id="@+id/nav_about_us"
             android:icon="@mipmap/ic_launcher"
-            android:title="Additional Options" />
+            android:title="App Info" />
     </group>
 
     <!--<item android:title="Communicate">

@@ -379,7 +379,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             // 50 miles -> 80467.2
             LatLngBounds bounds = toBounds(currentPlace.getLatLng(), 80467.2);
 
-            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 10);
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 12);
 
             if (googleMap != null) {
                 googleMap.animateCamera(cu);
@@ -388,7 +388,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             Log.d("markPlaces : ", "Current Place is null");
             if (googleMap != null && mostLikelyPlaceByName != null) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 10));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 13));
             }
         }
 
@@ -445,8 +445,12 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_about_us) {
 
+                        Intent intent = new Intent(this, AboutUsActivity.class);
+
+                                startActivity(intent);
+                        //finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
