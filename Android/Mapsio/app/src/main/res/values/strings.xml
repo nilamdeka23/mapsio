@@ -9,8 +9,10 @@
     <string name="my_cart">My Cart</string>
     <string name="delete">DELETE</string>
     <string name="sign_out">Sign Out</string>
-    <string name="sign_out_dtl">Sign Out of the mapsio app</string>
-    <string name="deactivate">Deactivate</string>
-    <string name="deactivate_dtl">Deactivate the mapsio account. Deletes all mapsio related data.</string>
+    <string name="sign_out_desc">Sign Out of the mapsio app</string>
+    <string name="deactivate_account">Deactivate Account</string>
+    <string name="deactivate_desc">Deactivate the mapsio account. Deletes all mapsio related data.</string>
+    <string name="confirm">Are you sure?</string>
     <!-- Added for favorite list -->
+    <string name="undo">undo</string>
 </resources>

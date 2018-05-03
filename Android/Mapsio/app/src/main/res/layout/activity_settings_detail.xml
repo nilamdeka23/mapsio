@@ -5,16 +5,16 @@
     android:orientation="vertical">
 
     <RelativeLayout
-        android:id = "@+id/sign_out_section"
+        android:id="@+id/sign_out_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:focusable="true"
         android:orientation="vertical"
-        android:paddingBottom="@dimen/row_padding_vertical"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/row_padding_vertical">
+        android:paddingBottom="10dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="10dp">
 
         <TextView
             android:id="@+id/sign_out_title"
@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="@string/sign_out"
-            android:textColor="@color/title"
+            android:textColor="@android:color/black"
             android:textSize="21dp"
             android:textStyle="bold" />
 
@@ -32,17 +32,17 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_below="@id/sign_out_title"
-            android:layout_toLeftOf="@+id/sign_out_button2"
+            android:layout_toLeftOf="@+id/sign_out_button"
             android:ellipsize="end"
             android:maxLines="3"
-            android:text="@string/sign_out_dtl"
+            android:text="@string/sign_out_desc"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@android:color/darker_gray" />
 
         <ImageView
-            android:id="@+id/sign_out_button2"
-            android:layout_width="@dimen/thumbnail"
-            android:layout_height="@dimen/thumbnail"
+            android:id="@+id/sign_out_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_alignParentRight="true"
             android:scaleType="centerCrop"
             android:src="@mipmap/ic_launcher" />
@@ -55,24 +55,24 @@
         android:background="@color/light_gray" />
 
     <RelativeLayout
-        android:id = "@+id/deactivate_section"
+        android:id="@+id/deactivate_account_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         android:focusable="true"
         android:orientation="vertical"
-        android:paddingBottom="@dimen/row_padding_vertical"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/row_padding_vertical">
+        android:paddingBottom="10dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="10dp">
 
         <TextView
             android:id="@+id/deactivate_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/sign_out"
-            android:textColor="@color/title"
+            android:text="@string/deactivate_account"
+            android:textColor="@android:color/black"
             android:textSize="21dp"
             android:textStyle="bold" />
 
@@ -82,22 +82,21 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_below="@id/deactivate_title"
-            android:layout_toLeftOf="@+id/deactivate_button2"
+            android:layout_toLeftOf="@+id/deactivate_button"
             android:ellipsize="end"
             android:maxLines="3"
-            android:text="@string/deactivate_dtl"
+            android:text="@string/deactivate_desc"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@android:color/darker_gray" />
 
         <ImageView
-            android:id="@+id/deactivate_button2"
-            android:layout_width="@dimen/thumbnail"
-            android:layout_height="@dimen/thumbnail"
+            android:id="@+id/deactivate_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_alignParentRight="true"
             android:scaleType="centerCrop"
             android:src="@mipmap/ic_launcher" />
 
     </RelativeLayout>
-
 
 </LinearLayout>

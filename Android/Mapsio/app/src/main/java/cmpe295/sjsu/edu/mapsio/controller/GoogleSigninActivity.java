@@ -127,7 +127,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
     }
 
     private void handleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "handleSignInResult:" + result.isSuccess());
+        Log.d(TAG, "handleSignInResult: " + result.isSuccess());
 
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
@@ -149,16 +149,27 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
                     Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Success " +
                             response.toString(), Toast.LENGTH_SHORT).show();
 
-                    // store data as local cache
-                    storeUserIdInSharedPreferences(userId);
+                    // store data in local application cache
+                    SharedPreferences sharedPreferences = getSharedPreferences("user_data",
+                            Context.MODE_PRIVATE);
+
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("user_id", userId);
+                    editor.putString("user_name", accountName);
+                    editor.putString("email", accountEmail);
+                    if (accountPic != null) {
+                        editor.putString("profile_pic_url", accountPic.toString());
+                    }
+                    editor.apply();
 
                     Intent intent = new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class);
 //                  Intent intent = new Intent(GoogleSigninActivity.this, SettingsActivity.class);
-                    intent.putExtra("name", accountName);
-                    intent.putExtra("email", accountEmail);
-                    if (accountPic != null) {
-                        intent.putExtra("profile_url", accountPic.toString());
-                    }
+
+//                    intent.putExtra("name", accountName);
+//                    intent.putExtra("email", accountEmail);
+//                    if (accountPic != null) {
+//                        intent.putExtra("profile_url", accountPic.toString());
+//                    }
 
                     startActivity(intent);
                     finish();
@@ -178,16 +189,6 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
             Toast.makeText(GoogleSigninActivity.this, "SignIn Failure " + result.toString(),
                     Toast.LENGTH_SHORT).show();
         }
-    }
-
-    private void storeUserIdInSharedPreferences(String userId) {
-
-        SharedPreferences sharedPreferences = getSharedPreferences("user_data",
-                Context.MODE_PRIVATE);
-
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("user_id", userId);
-        editor.apply();
     }
 
     private void showProgressDialog() {

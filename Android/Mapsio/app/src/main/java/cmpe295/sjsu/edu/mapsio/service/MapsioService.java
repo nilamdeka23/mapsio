@@ -15,6 +15,7 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface MapsioService {
 
@@ -24,8 +25,12 @@ public interface MapsioService {
     @POST("/api/place/detail")
     Call<LocationMarkerModel> getPlaceDetail(@Body PlaceDetailRequestModel placeDetailRequest);
 
-    @GET("/api/trips/{userId}")
-    Call<List<LocationMarkerModel>> getRecommendedLocations(@Path("userId") String userId);
+    @GET("/api/trips")
+    Call<List<LocationMarkerModel>> getRecommendedLocations(@Query("userId") String userId);
+
+    @GET("/api/favorites")
+    Call<List<LocationMarkerModel>> getFavorites(@Query("userId") String userId);
+
 
     class Factory {
         public static MapsioService create(Context context) {

@@ -7,8 +7,7 @@ public class LocationMarkerModel {
     private String address;
     private String imageURL;
     private boolean isFavorite;
-    private double latitide;
-    private double longitude;
+    private LatitudeLongitude latLng;
     private String name;
     private String placeId;
     private float rating;
@@ -18,8 +17,7 @@ public class LocationMarkerModel {
 
     public LocationMarkerModel(String name, LatLng latLng, String placeId) {
         this.name = name;
-        this.latitide = latLng.latitude;
-        this.longitude = latLng.longitude;
+        this.latLng = new LatitudeLongitude(latLng.latitude, latLng.longitude);
         this.placeId = placeId;
     }
 
@@ -63,21 +61,6 @@ public class LocationMarkerModel {
         this.placeId = placeId;
     }
 
-    public double getLatitide() {
-        return latitide;
-    }
-
-    public void setLatitide(double latitide) {
-        this.latitide = latitide;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
-    }
 
     public float getRating() {
         return rating;
@@ -85,6 +68,37 @@ public class LocationMarkerModel {
 
     public void setRating(float rating) {
         this.rating = rating;
+    }
+
+    private class LatitudeLongitude {
+
+        LatitudeLongitude() {
+        }
+
+        LatitudeLongitude(double latitide, double longitude) {
+            this.latitide = latitide;
+            this.longitude = longitude;
+        }
+
+        private double latitide;
+        private double longitude;
+
+        public double getLatitide() {
+            return latitide;
+        }
+
+        public void setLatitide(double latitide) {
+            this.latitide = latitide;
+        }
+
+        public double getLongitude() {
+            return longitude;
+        }
+
+        public void setLongitude(double longitude) {
+            this.longitude = longitude;
+        }
+
     }
 
 }

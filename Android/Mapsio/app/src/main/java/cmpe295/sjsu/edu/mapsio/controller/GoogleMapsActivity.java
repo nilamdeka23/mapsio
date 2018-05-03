@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -32,7 +31,6 @@ import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
-import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBufferResponse;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -55,20 +53,15 @@ import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.maps.android.SphericalUtil;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -79,6 +72,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMapClickListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final int VOICE_SEARCH_CODE = 3012;
 
     private GoogleMap googleMap;
     // provides access to Google's database of local place and business information.
@@ -86,29 +80,18 @@ public class GoogleMapsActivity extends AppCompatActivity
     // provides quick access to the device's current place, and offers the opportunity to report the
     // location of the device at a particular place.
     private PlaceDetectionClient mPlaceDetectionClient;
-    // The entry point to the Fused Location Provider.
-    private FusedLocationProviderClient mFusedLocationProviderClient;
-
     private boolean mLocationPermissionGranted;
-    // The geographical location where the device is currently located. That is, the last-known
-    // location retrieved by the Fused Location Provider.
-    private Location mLastKnownLocation;
-
     //current place where the device is located
     private Place currentPlace;
 
-    private static final String KEY_LOCATION = "location";
-
     private ArrayList<LocationMarkerModel> recommendedLocations;
-    private View childView;
-    private int recyclerViewItemPosition;
-    // build the latlng bounds for map
-    private LatLngBounds.Builder builder;
     private Map<String, LocationMarkerModel> markerMap;
 
+    private int recyclerViewItemPosition;
+
+    private View childView;
     private View markerDescLayout;
     private RecyclerView recommendationsRecyclerView;
-
     private FloatingSearchView mSearchView;
 
     @Override
@@ -164,7 +147,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         });
 
-
         mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
@@ -190,9 +172,14 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         });
 
-        String name = getIntent().getStringExtra("name");
-        String email = getIntent().getStringExtra("email");
-        String pic = getIntent().getStringExtra("profile_url");
+//        String name = getIntent().getStringExtra("name");
+//        String email = getIntent().getStringExtra("email");
+//        String pic = getIntent().getStringExtra("profile_url");
+
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+        String name = sharedPreferences.getString("user_name", "");
+        String email = sharedPreferences.getString("email", "");
+        String picURL = sharedPreferences.getString("profile_pic_url", "");
 
         View header = navigationView.getHeaderView(0);
 
@@ -201,7 +188,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         TextView emailTextView = (TextView) header.findViewById(R.id.email_textView);
         emailTextView.setText(email);
         ImageView profilePicImageView = (ImageView) header.findViewById(R.id.account_imageView);
-        Picasso.with(this).load(pic).into(profilePicImageView);
+//        Picasso.with(this).load(picURL).into(profilePicImageView);
 
         recommendationsRecyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
         // Adding items to RecyclerView.
@@ -259,37 +246,37 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     // function to add items in RecyclerView.
     public void AddItemsToRecyclerViewArrayList() {
-        // get user id from local cache
-        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
-        String userId = sharedPreferences.getString("user_id","");
+//        // get user id from local cache
+//        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+//        String userId = sharedPreferences.getString("user_id","");
+//
+//        MapsioService mapsioService = MapsioService.Factory.create(this);
+//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId);
+//
+//        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
+//            @Override
+//            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
+//                Log.d("RESPONSE", "RESPONSE" + response.toString());
+//                recommendedLocations = new ArrayList<>(response.body());
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
+//                Log.d("FAILURE", "FAILURE" + t.toString());
+//            }
+//
+//        });
 
-        MapsioService mapsioService = MapsioService.Factory.create(this);
-        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId);
-
-        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
-            @Override
-            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
-                Log.d("RESPONSE", "RESPONSE" + response.toString());
-                recommendedLocations = new ArrayList<>(response.body());
-            }
-
-            @Override
-            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
-                Log.d("FAILURE", "FAILURE" + t.toString());
-            }
-
-        });
-
-//        // TODO: remove dummy data
-//        recommendedLocations = new ArrayList<>();
-//        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "PLACEID"));
-//        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "PLACEID"));
+        // TODO: remove dummy data
+        recommendedLocations = new ArrayList<>();
+        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "PLACEID"));
     }
 
     public void search(final String searchQuery) {
@@ -467,7 +454,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         return true;
     }
 
-    // TODO: setMyLocationEnabled(true);
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
@@ -478,8 +464,10 @@ public class GoogleMapsActivity extends AppCompatActivity
         googleMap.setOnMapClickListener(this);
 
         if (mLocationPermissionGranted) {
+
             enableMyLocation();
         } else {
+
             disableMyLocation();
         }
     }
@@ -609,6 +597,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             mLocationPermissionGranted = true;
             enableMyLocation();
         } else {
+
             mLocationPermissionGranted = false;
             disableMyLocation();
             currentPlace = null;
@@ -643,7 +632,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
         // TODO: inform user of permission need
     }
-
 
     /**
      * Gets the current location of the device, and positions the map's camera.
@@ -697,7 +685,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
     }
 
-
     @SuppressLint("MissingPermission")
     private void enableMyLocation() {
 
@@ -716,7 +703,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
     }
 
-
     public LatLngBounds toBounds(LatLng center, double radiusInMeters) {
         double distanceFromCenterToCorner = radiusInMeters * Math.sqrt(2.0);
         LatLng southwestCorner =
@@ -726,9 +712,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         return new LatLngBounds(southwestCorner, northeastCorner);
     }
 
-
-    final int VOICE_SEARCH_CODE = 3012;
-
     public void startVoiceRecognition() {
         Intent intent = new Intent("android.speech.action.RECOGNIZE_SPEECH");
         intent.putExtra("android.speech.extra.LANGUAGE_MODEL", "free_form");
@@ -736,11 +719,11 @@ public class GoogleMapsActivity extends AppCompatActivity
         this.startActivityForResult(intent, VOICE_SEARCH_CODE);
     }
 
-    @ Override
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == VOICE_SEARCH_CODE && resultCode == RESULT_OK) {
-            ArrayList < String > matches = data
-                    .getStringArrayListExtra("android.speech.extra.RESULTS");
+            ArrayList<String> matches = data.getStringArrayListExtra("android.speech.extra.RESULTS");
+
             if(mSearchView!=null) {
 
                 mSearchView.setSearchText(matches.get(0));
@@ -749,7 +732,5 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
-
-
 
 }
