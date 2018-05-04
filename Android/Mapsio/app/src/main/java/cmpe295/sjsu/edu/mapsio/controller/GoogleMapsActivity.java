@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -56,6 +57,7 @@ import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
@@ -379,7 +381,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             // 50 miles -> 80467.2
             LatLngBounds bounds = toBounds(currentPlace.getLatLng(), 80467.2);
 
-            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 10);
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 12);
 
             if (googleMap != null) {
                 googleMap.animateCamera(cu);
@@ -388,7 +390,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             Log.d("markPlaces : ", "Current Place is null");
             if (googleMap != null && mostLikelyPlaceByName != null) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 10));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 13));
             }
         }
 
@@ -432,8 +434,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         //this ID needs to be renamed to favorites
-        if (id == R.id.nav_camera) {
-            //Log.d("Navigation menu:" ,"Favorites clicked");
+        if (id == R.id.nav_favorites) {
 
             Intent intent = new Intent(this, FavoritesActivity.class);
             startActivity(intent);
@@ -445,8 +446,12 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_about_us) {
 
+            Intent intent = new Intent(this, AboutUsActivity.class);
+
+            startActivity(intent);
+            //finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -489,13 +494,21 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                     if (task.isSuccessful() && task.getResult() != null) {
                         PlaceBufferResponse response = task.getResult();
-                        Place currPlace = response.get(0);
+                        final Place currPlace = response.get(0).freeze();
 
                         ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
                         TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
                         TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
                         Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
                         Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
+                        getDirectionsButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+                                startNavigation(currPlace.getLatLng());
+
+                            }
+                        });
 
                         locationTitleTextView.setText(currPlace.getName());
                         locationDescTextView.setText(currPlace.getAddress());
@@ -688,9 +701,20 @@ public class GoogleMapsActivity extends AppCompatActivity
     @SuppressLint("MissingPermission")
     private void enableMyLocation() {
 
-        if(googleMap!=null) {
+        if (googleMap != null) {
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+            //update current location when the MyLocationButton is clicker
+            googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                @Override
+                public boolean onMyLocationButtonClick() {
+                    Log.d("My Location Button :", "clicked");
+                    Log.d("My Location Button :", "If permission granted :" + mLocationPermissionGranted);
+                    getDeviceLocation();
+                    return false;
+                }
+            });
         }
     }
 
@@ -724,7 +748,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (requestCode == VOICE_SEARCH_CODE && resultCode == RESULT_OK) {
             ArrayList<String> matches = data.getStringArrayListExtra("android.speech.extra.RESULTS");
 
-            if(mSearchView!=null) {
+            if (mSearchView != null) {
 
                 mSearchView.setSearchText(matches.get(0));
                 search(matches.get(0));
@@ -733,4 +757,23 @@ public class GoogleMapsActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    //start navigation from current location to the selected destination
+    //using Google Maps
+    private void startNavigation(LatLng destination) {
+
+        if (currentPlace != null) {
+
+            //String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?saddr=%f,%f&daddr=%f,%f", currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude, destination.latitude, destination.longitude);
+            String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", destination.latitude, destination.longitude);
+            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+            startActivity(intent);
+
+        } else {
+
+            //TODO: should we ask location permission again?
+        }
+
+    }
 }

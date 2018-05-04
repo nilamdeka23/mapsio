@@ -1,102 +1,119 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<android.support.design.widget.AppBarLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:theme="@style/AppTheme.AppBarOverlay">
 
-    <RelativeLayout
-        android:id="@+id/sign_out_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:focusable="true"
-        android:orientation="vertical"
-        android:paddingBottom="10dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingTop="10dp">
-
-        <TextView
-            android:id="@+id/sign_out_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/sign_out"
-            android:textColor="@android:color/black"
-            android:textSize="21dp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/sign_out_desc"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_below="@id/sign_out_title"
-            android:layout_toLeftOf="@+id/sign_out_button"
-            android:ellipsize="end"
-            android:maxLines="3"
-            android:text="@string/sign_out_desc"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@android:color/darker_gray" />
-
-        <ImageView
-            android:id="@+id/sign_out_button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignParentRight="true"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/ic_launcher" />
-
-    </RelativeLayout>
-
-    <View
+    <android.support.v7.widget.Toolbar
+        android:background="@color/bg_row_background"
+        android:id="@+id/fav_toolbar"
+        android:layout_height="?attr/actionBarSize"
         android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/light_gray" />
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
 
-    <RelativeLayout
-        android:id="@+id/deactivate_account_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:focusable="true"
-        android:orientation="vertical"
-        android:paddingBottom="10dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingTop="10dp">
 
-        <TextView
-            android:id="@+id/deactivate_title"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:id="@+id/sign_out_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/deactivate_account"
-            android:textColor="@android:color/black"
-            android:textSize="21dp"
-            android:textStyle="bold" />
+            android:background="@android:color/white"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:paddingBottom="10dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="10dp">
 
-        <TextView
-            android:id="@+id/deactivate_desc"
+            <TextView
+                android:id="@+id/sign_out_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/sign_out"
+                android:textColor="@android:color/black"
+                android:textSize="21dp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/sign_out_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_below="@id/sign_out_title"
+                android:layout_toLeftOf="@+id/sign_out_button"
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:text="@string/sign_out_desc"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@android:color/darker_gray" />
+
+            <ImageView
+                android:id="@+id/sign_out_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentRight="true"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_launcher" />
+
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/light_gray" />
+
+        <RelativeLayout
+            android:id="@+id/deactivate_account_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:layout_below="@id/deactivate_title"
-            android:layout_toLeftOf="@+id/deactivate_button"
-            android:ellipsize="end"
-            android:maxLines="3"
-            android:text="@string/deactivate_desc"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@android:color/darker_gray" />
+            android:background="@android:color/white"
+            android:focusable="true"
+            android:orientation="vertical"
+            android:paddingBottom="10dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:paddingTop="10dp">
 
-        <ImageView
-            android:id="@+id/deactivate_button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_alignParentRight="true"
-            android:scaleType="centerCrop"
-            android:src="@mipmap/ic_launcher" />
+            <TextView
+                android:id="@+id/deactivate_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/deactivate_account"
+                android:textColor="@android:color/black"
+                android:textSize="21dp"
+                android:textStyle="bold" />
 
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/deactivate_desc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_below="@id/deactivate_title"
+                android:layout_toLeftOf="@+id/deactivate_button"
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:text="@string/deactivate_desc"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textColor="@android:color/darker_gray" />
 
-</LinearLayout>
+            <ImageView
+                android:id="@+id/deactivate_button"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentRight="true"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/ic_launcher" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</android.support.design.widget.AppBarLayout>
