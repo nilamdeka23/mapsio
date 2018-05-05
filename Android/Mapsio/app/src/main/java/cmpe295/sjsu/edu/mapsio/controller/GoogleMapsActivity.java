@@ -295,6 +295,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     public void search(final String searchQuery) {
         //If location permission is not granted try getting it
         if (!mLocationPermissionGranted) {
+
             getLocationPermission();
             getDeviceLocation();
         }
@@ -302,7 +303,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         Task<AutocompletePredictionBufferResponse> results;
 
         if (currentPlace != null) {
-
             //this is just taking the center
             LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
             LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
@@ -319,15 +319,14 @@ public class GoogleMapsActivity extends AppCompatActivity
             public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
 
                 if (task.isSuccessful() && task.getResult() != null) {
-
                     //Holder for the place Ids
                     ArrayList<String> placeIdList = new ArrayList<>();
                     AutocompletePredictionBufferResponse response = task.getResult();
 
                     for (AutocompletePrediction prediction : response) {
+
                         placeIdList.add(prediction.getPlaceId());
                         Log.d("Predicted places: ", prediction.getPrimaryText(null).toString());
-
                     }
 
                     markPlaces(placeIdList, searchQuery);
@@ -339,7 +338,6 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
-
         //save the place whose name matches the search query
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
@@ -364,9 +362,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
 
             MarkerOptions markerOptions = new MarkerOptions();
-
             markerOptions.position(tempPlace.getLatLng());
-
             markerOptions.title(tempPlace.getName().toString());
 
             if (googleMap != null) {
@@ -379,6 +375,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
 
         if (mostLikelyPlaceByName == null) {
+
             mostLikelyPlaceByName = firstPlace;
         }
 
@@ -397,6 +394,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             if (googleMap != null) {
                 googleMap.animateCamera(cu);
             }
+
         } else {
 
             Log.d("markPlaces : ", "Current Place is null");
@@ -417,7 +415,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -429,15 +427,15 @@ public class GoogleMapsActivity extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        /*int id = item.getItemId();
+        *//*int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
-        }*/
+        }*//*
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -460,7 +458,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         } else if (id == R.id.nav_about_us) {
 
             Intent intent = new Intent(this, AboutUsActivity.class);
-
             startActivity(intent);
             //finish();
         }
@@ -525,7 +522,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                             public void onClick(View v) {
 
                                 startNavigation(currPlace.getLatLng());
-
                             }
                         });
 
@@ -631,10 +627,8 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-
         // Prompt the user for permission.
         getLocationPermission();
-
         // Get the current location of the device and set the position of the map.
         getDeviceLocation();
     }
