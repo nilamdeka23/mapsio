@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -41,6 +42,10 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceFilter;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
+import com.google.android.gms.location.places.PlacePhotoMetadata;
+import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
+import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
+import com.google.android.gms.location.places.PlacePhotoResponse;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -58,12 +63,17 @@ import com.google.maps.android.SphericalUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -86,7 +96,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     //current place where the device is located
     private Place currentPlace;
 
-    private ArrayList<LocationMarkerModel> recommendedLocations;
+    private ArrayList<LocationMarkerModel> recommendedLocations = new ArrayList<>();
     private Map<String, LocationMarkerModel> markerMap;
 
     private int recyclerViewItemPosition;
@@ -95,6 +105,10 @@ public class GoogleMapsActivity extends AppCompatActivity
     private View markerDescLayout;
     private RecyclerView recommendationsRecyclerView;
     private FloatingSearchView mSearchView;
+
+    public interface PhotoCallbackInterface {
+        void onDownloadCallback(Bitmap bitmap);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,10 +188,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         });
 
-//        String name = getIntent().getStringExtra("name");
-//        String email = getIntent().getStringExtra("email");
-//        String pic = getIntent().getStringExtra("profile_url");
-
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
         String name = sharedPreferences.getString("user_name", "");
         String email = sharedPreferences.getString("email", "");
@@ -190,6 +200,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         TextView emailTextView = (TextView) header.findViewById(R.id.email_textView);
         emailTextView.setText(email);
         ImageView profilePicImageView = (ImageView) header.findViewById(R.id.account_imageView);
+        // TODO: need to fix this
 //        Picasso.with(this).load(picURL).into(profilePicImageView);
 
         recommendationsRecyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
@@ -496,7 +507,15 @@ public class GoogleMapsActivity extends AppCompatActivity
                         PlaceBufferResponse response = task.getResult();
                         final Place currPlace = response.get(0).freeze();
 
-                        ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
+                        final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
+
+                        getPhotos(currPlace.getId(), new PhotoCallbackInterface() {
+
+                            public void onDownloadCallback(Bitmap bitmap) {
+                                locationImageView.setImageBitmap(bitmap);
+                            }
+                        });
+
                         TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
                         TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
                         Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
@@ -577,6 +596,32 @@ public class GoogleMapsActivity extends AppCompatActivity
 //        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
+    // Request photos and metadata for the specified place.
+    private void getPhotos(String placeId, final PhotoCallbackInterface photoCallbackInterface) {
+        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(placeId);
+        photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
+                // Get the list of photos.
+                PlacePhotoMetadataResponse photos = task.getResult();
+                // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
+                PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
+                // Get the first photo in the list.
+                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0);
+                // Get the attribution text.
+                CharSequence attribution = photoMetadata.getAttributions();
+                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
+                photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
+                    @Override
+                    public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
+                        PlacePhotoResponse photo = task.getResult();
+                        photoCallbackInterface.onDownloadCallback(photo.getBitmap());
+                    }
+                });
+            }
+        });
+    }
+
     @Override
     public void onMapClick(LatLng latLng) {
         recommendationsRecyclerView.setVisibility(View.VISIBLE);
@@ -628,6 +673,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                                            @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
         mLocationPermissionGranted = false;
+
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.

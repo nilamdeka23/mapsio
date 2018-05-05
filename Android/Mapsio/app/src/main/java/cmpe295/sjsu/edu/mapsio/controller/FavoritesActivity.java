@@ -16,8 +16,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +35,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
     private List<LocationMarkerModel> favoriteLocations = new ArrayList<>();
     private FavoritesListAdapter mAdapter;
     private CoordinatorLayout coordinatorLayout;
+    private MapsioService mapsioService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,9 +89,10 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
             // remove the item from recycler view
             mAdapter.removeItem(viewHolder.getAdapterPosition());
 
+            // TODO: remove hardcoded string
             // showing snack bar with Undo option
             Snackbar snackbar = Snackbar
-                    .make(coordinatorLayout, name + " removed from cart!", Snackbar.LENGTH_LONG);
+                    .make(coordinatorLayout, name + " removed from favorties!", Snackbar.LENGTH_LONG);
             snackbar.setAction(getString(R.string.undo).toUpperCase(), new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -106,36 +106,37 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
     }
 
     private void prepareFavListData() {
-//        // get user id from local cache
-//        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
-//        String userId = sharedPreferences.getString("user_id","");
-//
-//        MapsioService mapsioService = MapsioService.Factory.create(this);
-//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getFavorites(userId);
-//
-//        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
-//            @Override
-//            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
-//                Log.d("RESPONSE", "RESPONSE" + response.toString());
-//                favoriteLocations = new ArrayList<>(response.body());
-//                mAdapter.notifyDataSetChanged();
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
-//                Log.d("FAILURE", "FAILURE" + t.toString());
-//            }
-//
-//        });
+        // get user id from local cache
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("user_id","");
 
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+        mapsioService = MapsioService.Factory.create(this);
+        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getFavorites(userId);
+
+        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
+            @Override
+            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
+                // TODO: show loading indicator
+                favoriteLocations = new ArrayList<>(response.body());
+                mAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
+                // TODO: show empty list and appropriate message
+            }
+
+        });
+
+        // TODO: remove test/dummy data
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
+//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
 
         mAdapter.notifyDataSetChanged();
     }

@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -36,7 +35,6 @@ import retrofit2.Response;
 
 public class GoogleSigninActivity extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
 
-    private static final String TAG = "GoogleSigninActivity";
     private static final int SIGN_IN = 001;
     private GoogleApiClient mGoogleApiClient;
     private ProgressDialog progressDialog;
@@ -97,7 +95,6 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
         if (opr.isDone()) {
             // If the user's cached credentials are valid, the OptionalPendingResult will be "done"
             // and the GoogleSignInResult will be available instantly.
-            Log.d(TAG, "Got cached sign-in");
             GoogleSignInResult result = opr.get();
             handleSignInResult(result);
 
@@ -127,8 +124,6 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
     }
 
     private void handleSignInResult(GoogleSignInResult result) {
-        Log.d(TAG, "handleSignInResult: " + result.isSuccess());
-
         if (result.isSuccess()) {
             // Signed in successfully, show authenticated UI.
             GoogleSignInAccount acct = result.getSignInAccount();
@@ -161,23 +156,14 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
                         editor.putString("profile_pic_url", accountPic.toString());
                     }
                     editor.apply();
-
-                    Intent intent = new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class);
-//                  Intent intent = new Intent(GoogleSigninActivity.this, SettingsActivity.class);
-
-//                    intent.putExtra("name", accountName);
-//                    intent.putExtra("email", accountEmail);
-//                    if (accountPic != null) {
-//                        intent.putExtra("profile_url", accountPic.toString());
-//                    }
-
-                    startActivity(intent);
+                    // navigate user to next screen
+                    startActivity(new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class));
                     finish();
                 }
 
                 @Override
                 public void onFailure(Call<AuthRequestModel> call, Throwable t) {
-
+                    // TODO: handle failure better(hint: google best practice)
                     Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Fail " +
                             t.toString(), Toast.LENGTH_SHORT).show();
                 }
@@ -185,7 +171,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
             });
 
         } else {
-            // TODO: come up with a better message
+            // TODO: come up with a better toast message OR a meaningful(hint: google best practice)
             Toast.makeText(GoogleSigninActivity.this, "SignIn Failure " + result.toString(),
                     Toast.LENGTH_SHORT).show();
         }
@@ -212,7 +198,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO: come up with a better message
+        // TODO: come up with a better toast message or a meaninful action(hint: google best practice)
         Toast.makeText(GoogleSigninActivity.this, "SignIn Connection Failure " +
                 connectionResult.toString(), Toast.LENGTH_SHORT).show();
     }
