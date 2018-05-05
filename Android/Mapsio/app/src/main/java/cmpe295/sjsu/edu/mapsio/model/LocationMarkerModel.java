@@ -21,6 +21,14 @@ public class LocationMarkerModel {
         this.placeId = placeId;
     }
 
+    public LocationMarkerModel(String name, LatLng latLng, String placeId, String address, boolean isFavorite) {
+        this.name = name;
+        this.latLng = new LatitudeLongitude(latLng.latitude, latLng.longitude);
+        this.placeId = placeId;
+        this.address = address;
+        this.isFavorite = isFavorite;
+    }
+
     public String getName() {
         return name;
     }
@@ -61,7 +69,6 @@ public class LocationMarkerModel {
         this.placeId = placeId;
     }
 
-
     public float getRating() {
         return rating;
     }
@@ -69,6 +76,15 @@ public class LocationMarkerModel {
     public void setRating(float rating) {
         this.rating = rating;
     }
+
+    public LatLng getLatLng() {
+        return new LatLng(latLng.latitide, latLng.longitude);
+    }
+
+    public void setLatLng(LatLng latLng) {
+        this.latLng = new LatitudeLongitude(latLng.latitude, latLng.longitude);
+    }
+
 
     private class LatitudeLongitude {
 

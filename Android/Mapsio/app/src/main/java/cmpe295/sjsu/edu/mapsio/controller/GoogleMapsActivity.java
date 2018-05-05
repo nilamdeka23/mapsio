@@ -22,14 +22,12 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -62,14 +60,16 @@ import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
+import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -99,16 +99,10 @@ public class GoogleMapsActivity extends AppCompatActivity
     private ArrayList<LocationMarkerModel> recommendedLocations = new ArrayList<>();
     private Map<String, LocationMarkerModel> markerMap;
 
-    private int recyclerViewItemPosition;
-
     private View childView;
     private View markerDescLayout;
     private RecyclerView recommendationsRecyclerView;
     private FloatingSearchView mSearchView;
-
-    public interface PhotoCallbackInterface {
-        void onDownloadCallback(Bitmap bitmap);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -234,10 +228,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                 if (childView != null && gestureDetector.onTouchEvent(motionEvent)) {
 
                     //Getting clicked value.
-                    recyclerViewItemPosition = Recyclerview.getChildAdapterPosition(childView);
+                    int recyclerViewItemPosition = Recyclerview.getChildAdapterPosition(childView);
+                    LocationMarkerModel selectedRecommendation = recommendedLocations.get(recyclerViewItemPosition);
 
-                    // Showing clicked item value on screen using toast message.
-                    Toast.makeText(GoogleMapsActivity.this, recommendedLocations.get(recyclerViewItemPosition).getName(), Toast.LENGTH_LONG).show();
+                    showMarkerDescLayout(selectedRecommendation);
                 }
 
                 return false;
@@ -281,15 +275,14 @@ public class GoogleMapsActivity extends AppCompatActivity
 //        });
 
         // TODO: remove dummy data
-        recommendedLocations = new ArrayList<>();
-        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "PLACEID"));
-        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "PLACEID"));
+        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
     }
 
     public void search(final String searchQuery) {
@@ -415,28 +408,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
     }
 
-    /*@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        *//*int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }*//*
-
-        return super.onOptionsItemSelected(item);
-    }*/
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -502,33 +473,11 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                     if (task.isSuccessful() && task.getResult() != null) {
                         PlaceBufferResponse response = task.getResult();
-                        final Place currPlace = response.get(0).freeze();
+                        Place currPlace = response.get(0).freeze();
+                        LocationMarkerModel locationObj = new LocationMarkerModel(currPlace.getName().toString(), currPlace.getLatLng(),
+                                currPlace.getId(), currPlace.getAddress().toString(), false);
 
-                        final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
-
-                        getPhotos(currPlace.getId(), new PhotoCallbackInterface() {
-
-                            public void onDownloadCallback(Bitmap bitmap) {
-                                locationImageView.setImageBitmap(bitmap);
-                            }
-                        });
-
-                        TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
-                        TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
-                        Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
-                        Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
-                        getDirectionsButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-                                startNavigation(currPlace.getLatLng());
-                            }
-                        });
-
-                        locationTitleTextView.setText(currPlace.getName());
-                        locationDescTextView.setText(currPlace.getAddress());
-                        recommendationsRecyclerView.setVisibility(View.INVISIBLE);
-                        markerDescLayout.setVisibility(View.VISIBLE);
+                        showMarkerDescLayout(locationObj);
 
                         response.release();
                     }
@@ -543,6 +492,36 @@ public class GoogleMapsActivity extends AppCompatActivity
         return false;
     }
 
+    private void showMarkerDescLayout(final LocationMarkerModel locationObj) {
+        final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
+        TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
+        TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
+        Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
+        Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
+
+        MapsioUtils.getInstance().getPhotos(locationObj.getPlaceId(), mGeoDataClient, new IPlacePhoto() {
+
+            public void onDownloadCallback(Bitmap bitmap) {
+                locationImageView.setImageBitmap(bitmap);
+            }
+        });
+
+        getDirectionsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startNavigation(locationObj.getLatLng());
+            }
+        });
+
+        locationTitleTextView.setText(locationObj.getName());
+        locationDescTextView.setText(locationObj.getAddress());
+        // hide recommendations view
+        recommendationsRecyclerView.setVisibility(View.INVISIBLE);
+        // render marker description visible
+        markerDescLayout.setVisibility(View.VISIBLE);
+    }
+
     @Override
     public void onPoiClick(PointOfInterest poi) {
         // Clears the previously touched position
@@ -552,7 +531,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         // Creating a marker
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(poi.latLng)
-                .title(poi.name + " : " + poi.placeId));
+                .title(poi.name));
 
         markerMap.put(marker.getId(), new LocationMarkerModel(poi.name, poi.latLng, poi.placeId));
 
@@ -592,35 +571,11 @@ public class GoogleMapsActivity extends AppCompatActivity
 //        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
     }
 
-    // Request photos and metadata for the specified place.
-    private void getPhotos(String placeId, final PhotoCallbackInterface photoCallbackInterface) {
-        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(placeId);
-        photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
-                // Get the list of photos.
-                PlacePhotoMetadataResponse photos = task.getResult();
-                // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
-                PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
-                // Get the first photo in the list.
-                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0);
-                // Get the attribution text.
-                CharSequence attribution = photoMetadata.getAttributions();
-                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getPhoto(photoMetadata);
-                photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
-                        PlacePhotoResponse photo = task.getResult();
-                        photoCallbackInterface.onDownloadCallback(photo.getBitmap());
-                    }
-                });
-            }
-        });
-    }
-
     @Override
     public void onMapClick(LatLng latLng) {
+        // make recommendations view visible
         recommendationsRecyclerView.setVisibility(View.VISIBLE);
+        // make marker description invisible
         markerDescLayout.setVisibility(View.INVISIBLE);
     }
 
@@ -797,8 +752,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    //start navigation from current location to the selected destination
-    //using Google Maps
+    //start navigation from current location to the selected destination using Google Maps
     private void startNavigation(LatLng destination) {
 
         if (currentPlace != null) {
