@@ -8,12 +8,24 @@
     <!-- Added for favorite list -->
     <string name="my_cart">My Cart</string>
     <string name="delete">DELETE</string>
-    <string name="sign_out">Sign Out</string>
-    <string name="sign_out_desc">Sign Out of the mapsio app</string>
-    <string name="deactivate_account">Deactivate Account</string>
-    <string name="deactivate_desc">Deactivate the mapsio account. Deletes all mapsio related data.</string>
-    <string name="confirm">Are you sure?</string>
+    <string name="settings_sign_out">Sign Out</string>
+    <string name="settings_sign_out_desc">Sign Out of the mapsio app</string>
+    <string name="settings_deactivate_account">Deactivate Account</string>
+    <string name="settings_deactivate_desc">Deactivate the mapsio account. Deletes all mapsio related data.</string>
+    <string name="settings_sign_out_confirm">Are you sure you want to sign out?</string>
+    <string name="settings_deactivate_confirm">Are you sure you want to deactivate account?</string>
     <!-- Added for favorite list -->
     <string name="undo">undo</string>
     <string name="about_us_text"> About Us</string>
+    <string name="settings_curr_loc">My Location</string>
+    <string name="settings_curr_loc_desc">Allow mapsio to access your current location.</string>
+
+    <string name="info_dialog_curr_loc_title">Current location access permission required</string>
+    <string name="info_dialog_curr_loc_message">Mapsio requires current location access for navigation. Go to settings to turn on current location.</string>
+
+
+    <string name="curr_loc_alrdy_enabled_msg">Your current location already enabled.</string>
+    <string name="curr_loc_enabled_msg">Your current location is now enabled.</string>
+    <string name="curr_loc_disabled_msg">Your current location not enabled.</string>
+
 </resources>
