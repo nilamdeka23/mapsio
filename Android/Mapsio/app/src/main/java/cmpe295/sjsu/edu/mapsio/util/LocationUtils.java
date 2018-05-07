@@ -56,6 +56,7 @@ public class LocationUtils{
             mLocationPermissionGranted = true;
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+            getDeviceLocation();
         } else {
             mLocationPermissionGranted = false;
             googleMap.setMyLocationEnabled(false);
@@ -95,10 +96,10 @@ public class LocationUtils{
 
                                     maxLikelyVal = placeLikelihood.getLikelihood();
                                     currPlace = placeLikelihood.getPlace().freeze();
-                                    currentLocationService.onCurrentLocationReceived(currPlace);
                                 }
 
                             }
+                            currentLocationService.onCurrentLocationReceived(currPlace);
                             enableMyLocation();
 
                             likelyPlaces.release();
@@ -123,7 +124,6 @@ public class LocationUtils{
 
     @SuppressLint("MissingPermission")
     public void enableMyLocation() {
-
         if (googleMap != null) {
 
             //update current location when the MyLocationButton is clicker

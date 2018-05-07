@@ -57,6 +57,7 @@ import java.util.Map;
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.model.PlaceDetailRequestModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.util.ICurrentLocationService;
 import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
@@ -89,6 +90,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     private View childView;
     private View markerDescLayout;
     private RecyclerView recommendationsRecyclerView;
+    private RecommendationsViewAdapter recommendationsViewAdapter;
     private FloatingSearchView searchView;
 
     @Override
@@ -184,10 +186,12 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         recommendationsRecyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
 
-        RecommendationsViewAdapter RecyclerViewHorizontalAdapter = new RecommendationsViewAdapter(recommendedLocations, this);
+        recommendationsViewAdapter = new RecommendationsViewAdapter(recommendedLocations, this);
         LinearLayoutManager HorizontalLayout = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         recommendationsRecyclerView.setLayoutManager(HorizontalLayout);
-        recommendationsRecyclerView.setAdapter(RecyclerViewHorizontalAdapter);
+        recommendationsRecyclerView.setAdapter(recommendationsViewAdapter);
+        // Adding items to RecyclerView.
+        AddItemsToRecyclerViewArrayList(LocationUtils.getInstance().getCurrPlace());
 
         // Adding on item click listener to RecyclerView.
         recommendationsRecyclerView.addOnItemTouchListener(new RecyclerView.OnItemTouchListener() {
@@ -236,13 +240,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     // function to add items in RecyclerView.
     public void AddItemsToRecyclerViewArrayList(Place currentPlace) {
-        //If location permission is not granted try getting it
-        if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
-            // Prompt the user for permission.
-            LocationUtils.getInstance().getLocationPermission(GoogleMapsActivity.this);
-            // Get the current location of the device and set the position of the map.
-            LocationUtils.getInstance().getDeviceLocation();
-        }
 
         if (currentPlace != null) {
             // init request
@@ -261,6 +258,8 @@ public class GoogleMapsActivity extends AppCompatActivity
                 public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                     Log.d("RESPONSE", "RESPONSE" + response.toString());
                     recommendedLocations = new ArrayList<>(response.body());
+                    recommendationsViewAdapter.notifyDataSetChanged();
+                    recommendationsRecyclerView.setVisibility(View.VISIBLE);
                 }
 
                 @Override
@@ -278,8 +277,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
             // Prompt the user for permission.
             LocationUtils.getInstance().getLocationPermission(activity);
-            // Get the current location of the device and set the position of the map.
-            LocationUtils.getInstance().getDeviceLocation();
         }
 
         Task<AutocompletePredictionBufferResponse> results;
@@ -564,35 +561,37 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMapLongClick(LatLng latLng) {
-//        MapsioService mapsioService = MapsioService.Factory.create(this);
-//        Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new PlaceDetailRequestModel(latLng.latitude,
-//                latLng.longitude));
-//
-//        placeDetailRequestCall.enqueue(new Callback<LocationMarkerModel>() {
-//            @Override
-//            public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
-//                Log.d("RESPONSE", "RESPONSE" + response.toString());
-//            }
-//
-//            @Override
-//            public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
-//                Log.d("FAILURE", "FAILURE" + t.toString());
-//            }
-//
-//        });
-//
-//        // Clears the previously touched position
-//        if (googleMap != null)
-//            googleMap.clear();
-//
-//        // Creating a marker
-//        Marker marker = googleMap.addMarker(new MarkerOptions()
-//                .position(latLng)
-//                .title(latLng.latitude + " : " + latLng.longitude));
-//
-//        // Animating to the touched position
-//        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+    public void onMapLongClick(final LatLng latLng) {
+        MapsioService mapsioService = MapsioService.Factory.create(this);
+        Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new PlaceDetailRequestModel(latLng.latitude,
+                latLng.longitude));
+
+        placeDetailRequestCall.enqueue(new Callback<LocationMarkerModel>() {
+            @Override
+            public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                Log.d("RESPONSE", "RESPONSE" + response.toString());
+                LocationMarkerModel selectedLocation = response.body();
+
+                // Clears the previously touched position
+                if (googleMap != null)
+                    googleMap.clear();
+
+                // Creating a marker
+                Marker marker = googleMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title(latLng.latitude + " : " + latLng.longitude));
+
+                // Animating to the touched position
+                googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            }
+
+            @Override
+            public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                Log.d("FAILURE", "FAILURE" + t.toString());
+            }
+
+        });
+
     }
 
     @Override
@@ -620,8 +619,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
             // Prompt the user for permission.
             LocationUtils.getInstance().getLocationPermission(this);
-            // Get the current location of the device and set the position of the map.
-            LocationUtils.getInstance().getDeviceLocation();
         }
         LocationUtils.getInstance().enableMyLocation();
     }
@@ -653,14 +650,18 @@ public class GoogleMapsActivity extends AppCompatActivity
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     LocationUtils.getInstance().setmLocationPermissionGranted(true);
+                    // Get the current location of the device and set the position of the map.
+                    LocationUtils.getInstance().getDeviceLocation();
+
                     googleMap.setMyLocationEnabled(true);
                     googleMap.getUiSettings().setMyLocationButtonEnabled(true);
 
                 } else {
                     LocationUtils.getInstance().setmLocationPermissionGranted(false);
+                    LocationUtils.getInstance().setCurrPlace(null);
+
                     googleMap.setMyLocationEnabled(false);
                     googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-                    LocationUtils.getInstance().setCurrPlace(null);
                 }
             }
         }
