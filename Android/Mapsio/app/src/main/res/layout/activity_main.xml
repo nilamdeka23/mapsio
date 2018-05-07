@@ -24,15 +24,22 @@
             android:id="@+id/floating_search_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:floatingSearch_leftActionMode="showSearch"
-            app:floatingSearch_searchBarMarginLeft="@dimen/search_view_inset"
-            app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
-            app:floatingSearch_searchBarMarginRight="@dimen/search_view_inset"
-            app:floatingSearch_searchHint="Search..."
-            app:floatingSearch_suggestionsListAnimDuration="250"
-            app:floatingSearch_showSearchKey="true"
+            app:floatingSearch_backgroundColor="@color/teal"
+            app:floatingSearch_clearBtnColor="@android:color/white"
             app:floatingSearch_close_search_on_keyboard_dismiss="true"
-            app:floatingSearch_menu="@menu/menu_main"/>
+            app:floatingSearch_dividerColor="@android:color/white"
+            app:floatingSearch_hintTextColor="@android:color/white"
+            app:floatingSearch_leftActionColor="@android:color/white"
+            app:floatingSearch_leftActionMode="showSearch"
+            app:floatingSearch_menu="@menu/menu_main"
+            app:floatingSearch_menuItemIconColor="@android:color/white"
+            app:floatingSearch_searchBarMarginLeft="@dimen/search_view_inset"
+            app:floatingSearch_searchBarMarginRight="@dimen/search_view_inset"
+            app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
+            app:floatingSearch_searchHint="Search..."
+            app:floatingSearch_showSearchKey="true"
+            app:floatingSearch_suggestionsListAnimDuration="250"
+            app:floatingSearch_viewTextColor="@android:color/white" />
 
 
         <include
