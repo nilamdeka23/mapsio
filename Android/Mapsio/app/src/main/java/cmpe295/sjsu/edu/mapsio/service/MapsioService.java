@@ -25,8 +25,8 @@ public interface MapsioService {
     @POST("/api/place/detail")
     Call<LocationMarkerModel> getPlaceDetail(@Body PlaceDetailRequestModel placeDetailRequest);
 
-    @GET("api/users/recommendations")
-    Call<List<LocationMarkerModel>> getRecommendedLocations(@Query("userId") String userId);
+    @POST("api/users/recommendations")
+    Call<List<LocationMarkerModel>> getRecommendedLocations(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
 
     @GET("/api/favorites")
     Call<List<LocationMarkerModel>> getFavorites(@Query("userId") String userId);

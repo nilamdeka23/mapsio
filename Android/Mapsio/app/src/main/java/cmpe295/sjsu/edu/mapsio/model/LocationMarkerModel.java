@@ -6,19 +6,21 @@ public class LocationMarkerModel {
 
     private String address;
     private String imageURL;
-    private boolean isFavorite;
+    private boolean isFavorite = false;
     private LatitudeLongitude latLng;
     private String name;
     private String placeId;
     private float rating;
+    private boolean isPoi = false;
 
     public LocationMarkerModel() {
     }
 
-    public LocationMarkerModel(String name, LatLng latLng, String placeId) {
+    public LocationMarkerModel(String name, LatLng latLng, String placeId, boolean isPoi) {
         this.name = name;
         this.latLng = new LatitudeLongitude(latLng.latitude, latLng.longitude);
         this.placeId = placeId;
+        this.isPoi = isPoi;
     }
 
     public LocationMarkerModel(String name, LatLng latLng, String placeId, String address, boolean isFavorite) {
@@ -83,6 +85,14 @@ public class LocationMarkerModel {
 
     public void setLatLng(LatLng latLng) {
         this.latLng = new LatitudeLongitude(latLng.latitude, latLng.longitude);
+    }
+
+    public boolean isPoi() {
+        return isPoi;
+    }
+
+    public void setPoi(boolean poi) {
+        isPoi = poi;
     }
 
 

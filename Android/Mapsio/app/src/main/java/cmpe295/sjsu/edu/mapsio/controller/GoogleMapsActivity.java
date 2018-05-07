@@ -40,10 +40,6 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceFilter;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
-import com.google.android.gms.location.places.PlacePhotoMetadata;
-import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
-import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
-import com.google.android.gms.location.places.PlacePhotoResponse;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -56,24 +52,18 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
 import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -253,12 +243,23 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     // function to add items in RecyclerView.
     public void AddItemsToRecyclerViewArrayList() {
+//        //If location permission is not granted try getting it
+//        if (!mLocationPermissionGranted) {
+//
+//            getLocationPermission();
+//            getDeviceLocation();
+//        }
+//
+////        // init request
 //        // get user id from local cache
 //        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
-//        String userId = sharedPreferences.getString("user_id","");
+//        String userId = sharedPreferences.getString("user_id", "");
+//
+//        LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
+//                currentPlace.getId(), currentPlace.getAddress().toString(), false);
 //
 //        MapsioService mapsioService = MapsioService.Factory.create(this);
-//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId);
+//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
 //
 //        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
 //            @Override
@@ -274,15 +275,15 @@ public class GoogleMapsActivity extends AppCompatActivity
 //
 //        });
 
-        // TODO: remove dummy data
-        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        // TODO: remove dummy data
+//        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+//        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
     }
 
     public void search(final String searchQuery) {
@@ -361,7 +362,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             if (googleMap != null) {
                 Marker marker = googleMap.addMarker(markerOptions);
                 markerMap.put(marker.getId(), new LocationMarkerModel(tempPlace.getName().toString(),
-                        tempPlace.getLatLng(), tempPlace.getId()));
+                        tempPlace.getLatLng(), tempPlace.getId(), false));
             }
 
             response.release();
@@ -380,7 +381,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             // 100 miles -> 160934 meters
             // 50 miles -> 80467.2
-            LatLngBounds bounds = toBounds(currentPlace.getLatLng(), 80467.2);
+            LatLngBounds bounds = MapsioUtils.getInstance().toBounds(currentPlace.getLatLng(), 80467.2);
 
             CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 12);
 
@@ -401,9 +402,12 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
+
             drawer.closeDrawer(GravityCompat.START);
         } else {
+
             super.onBackPressed();
         }
     }
@@ -463,19 +467,19 @@ public class GoogleMapsActivity extends AppCompatActivity
     public boolean onMarkerClick(final Marker marker) {
 
         // Retrieve the data from the marker.
-        LocationMarkerModel locationMarkerModel = markerMap.get(marker.getId());
-        if (locationMarkerModel.getPlaceId() != null) {
+        LocationMarkerModel markerObj = markerMap.get(marker.getId());
+        if (markerObj.getPlaceId() != null) {
 
-            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(locationMarkerModel.getPlaceId());
+            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(markerObj.getPlaceId());
             result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
                 @Override
                 public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
 
                     if (task.isSuccessful() && task.getResult() != null) {
                         PlaceBufferResponse response = task.getResult();
-                        Place currPlace = response.get(0).freeze();
-                        LocationMarkerModel locationObj = new LocationMarkerModel(currPlace.getName().toString(), currPlace.getLatLng(),
-                                currPlace.getId(), currPlace.getAddress().toString(), false);
+                        Place place = response.get(0).freeze();
+                        LocationMarkerModel locationObj = new LocationMarkerModel(place.getName().toString(), place.getLatLng(),
+                                place.getId(), place.getAddress().toString(), false);
 
                         showMarkerDescLayout(locationObj);
 
@@ -524,16 +528,36 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     @Override
     public void onPoiClick(PointOfInterest poi) {
-        // Clears the previously touched position
+        // Clears the previously touched location
         if (googleMap != null)
             googleMap.clear();
+        // clear local cache
+        markerMap.clear();
 
         // Creating a marker
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(poi.latLng)
                 .title(poi.name));
+        // add to local cache
+        markerMap.put(marker.getId(), new LocationMarkerModel(poi.name, poi.latLng, poi.placeId, true));
 
-        markerMap.put(marker.getId(), new LocationMarkerModel(poi.name, poi.latLng, poi.placeId));
+        Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(poi.placeId);
+        result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
+
+                if (task.isSuccessful() && task.getResult() != null) {
+                    PlaceBufferResponse response = task.getResult();
+                    Place place = response.get(0).freeze();
+                    LocationMarkerModel locationObj = new LocationMarkerModel(place.getName().toString(), place.getLatLng(),
+                            place.getId(), place.getAddress().toString(), false);
+
+                    showMarkerDescLayout(locationObj);
+
+                    response.release();
+                }
+            }
+        });
 
         // Animating to the touched position
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(poi.latLng));
@@ -670,20 +694,18 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                                     maxLikelyVal = placeLikelihood.getLikelihood();
                                     currentPlace = placeLikelihood.getPlace().freeze();
-
                                 }
-
                             }
 
                             likelyPlaces.release();
                             Log.d("CURRENT LOCATION", "Current location found.");
                         } else {
+
                             Log.d("CURRENT LOCATION", "Current location is null. Using defaults.");
                             Log.e("CURRENT LOCATION", "Exception: %s", task.getException());
-
                         }
-
                     }
+
                 });
 
             }
@@ -707,6 +729,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     Log.d("My Location Button :", "clicked");
                     Log.d("My Location Button :", "If permission granted :" + mLocationPermissionGranted);
                     getDeviceLocation();
+
                     return false;
                 }
             });
@@ -720,15 +743,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             googleMap.setMyLocationEnabled(false);
             googleMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
-    }
-
-    public LatLngBounds toBounds(LatLng center, double radiusInMeters) {
-        double distanceFromCenterToCorner = radiusInMeters * Math.sqrt(2.0);
-        LatLng southwestCorner =
-                SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 225.0);
-        LatLng northeastCorner =
-                SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 45.0);
-        return new LatLngBounds(southwestCorner, northeastCorner);
     }
 
     public void startVoiceRecognition() {

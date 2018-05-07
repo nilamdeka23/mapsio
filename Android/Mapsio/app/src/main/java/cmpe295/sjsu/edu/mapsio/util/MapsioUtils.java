@@ -7,8 +7,11 @@ import com.google.android.gms.location.places.PlacePhotoMetadata;
 import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
 import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
 import com.google.android.gms.location.places.PlacePhotoResponse;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.SphericalUtil;
 
 public class MapsioUtils {
 
@@ -46,7 +49,17 @@ public class MapsioUtils {
                         iPlacePhoto.onDownloadCallback(photo.getBitmap());
                     }
                 });
+                photoMetadataBuffer.release();
             }
         });
+    }
+
+    public LatLngBounds toBounds(LatLng center, double radiusInMeters) {
+        double distanceFromCenterToCorner = radiusInMeters * Math.sqrt(2.0);
+        LatLng southwestCorner =
+                SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 225.0);
+        LatLng northeastCorner =
+                SphericalUtil.computeOffset(center, distanceFromCenterToCorner, 45.0);
+        return new LatLngBounds(southwestCorner, northeastCorner);
     }
 }
