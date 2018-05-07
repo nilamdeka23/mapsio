@@ -197,7 +197,6 @@ public class SettingsActivity extends AppCompatActivity implements GoogleApiClie
         }else {
 
             LocationUtils.getInstance().getLocationPermission(this);
-            LocationUtils.getInstance().getDeviceLocation();
             if(LocationUtils.getInstance().ismLocationPermissionGranted()){
                 Toast.makeText(this, R.string.curr_loc_enabled_msg,Toast.LENGTH_LONG);
             }
