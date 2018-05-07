@@ -58,6 +58,7 @@ import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import cmpe295.sjsu.edu.mapsio.util.ICurrentLocationService;
 import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
 import cmpe295.sjsu.edu.mapsio.util.LocationUtils;
 import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
@@ -72,17 +73,15 @@ import retrofit2.Response;
 
 public class GoogleMapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
-        GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener, GoogleMap.OnMapClickListener {
+        GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener,
+        GoogleMap.OnMapClickListener, ICurrentLocationService {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int VOICE_SEARCH_CODE = 3012;
 
     private GoogleMap googleMap;
     // provides access to Google's database of local place and business information.
-    private GeoDataClient mGeoDataClient;
-    // provides quick access to the device's current place, and offers the opportunity to report the
-    // location of the device at a particular place.
-    private PlaceDetectionClient mPlaceDetectionClient;
+    private GeoDataClient geoDataClient;
 
     private ArrayList<LocationMarkerModel> recommendedLocations = new ArrayList<>();
     private Map<String, LocationMarkerModel> markerMap;
@@ -90,7 +89,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     private View childView;
     private View markerDescLayout;
     private RecyclerView recommendationsRecyclerView;
-    private FloatingSearchView mSearchView;
+    private FloatingSearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,14 +99,16 @@ public class GoogleMapsActivity extends AppCompatActivity
         markerMap = new HashMap<>();
         // init marker description layout
         markerDescLayout = findViewById(R.id.marker_desc_layout);
-
         // init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        mGeoDataClient = Places.getGeoDataClient(this, null);
-        mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
-        LocationUtils.getInstance().setPlaceDetectionClient(mPlaceDetectionClient);
+        geoDataClient = Places.getGeoDataClient(this, null);
+        // provides quick access to the device's current place, and offers the opportunity to report the
+        // location of the device at a particular place.
+        PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(this, null);
+        LocationUtils.getInstance().setPlaceDetectionClient(placeDetectionClient);
+        LocationUtils.getInstance().setCurrentLocationService(this);
 
         // init map
         CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
@@ -129,10 +130,10 @@ public class GoogleMapsActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         //Search Bar
-        mSearchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
+        searchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
 
         //Listener for search text changes
-        mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
+        searchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
                 searchText.delete(0, searchText.length());
@@ -140,7 +141,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         });
 
-        mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
                 Log.d("Search Bar","onSuggestionClicked");
@@ -149,13 +150,14 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             @Override
             public void onSearchAction(String currentQuery) {
+                // TODO: should we clear mMap too?
                 googleMap.clear();
                 search(searchText.toString(),GoogleMapsActivity.this);
             }
         });
 
         //Listener for clicks on the mic in the search bar
-        mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
+        searchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
 
@@ -181,8 +183,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 //        Picasso.with(this).load(picURL).into(profilePicImageView);
 
         recommendationsRecyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
-        // Adding items to RecyclerView.
-        AddItemsToRecyclerViewArrayList();
 
         RecommendationsViewAdapter RecyclerViewHorizontalAdapter = new RecommendationsViewAdapter(recommendedLocations, this);
         LinearLayoutManager HorizontalLayout = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
@@ -235,48 +235,42 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     // function to add items in RecyclerView.
-    public void AddItemsToRecyclerViewArrayList() {
-//        //If location permission is not granted try getting it
-//        if (!mLocationPermissionGranted) {
-//
-//            getLocationPermission();
-//            getDeviceLocation();
-//        }
-//
-////        // init request
-//        // get user id from local cache
-//        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
-//        String userId = sharedPreferences.getString("user_id", "");
-//
-//        LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
-//                currentPlace.getId(), currentPlace.getAddress().toString(), false);
-//
-//        MapsioService mapsioService = MapsioService.Factory.create(this);
-//        Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
-//
-//        recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
-//            @Override
-//            public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
-//                Log.d("RESPONSE", "RESPONSE" + response.toString());
-//                recommendedLocations = new ArrayList<>(response.body());
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
-//                Log.d("FAILURE", "FAILURE" + t.toString());
-//            }
-//
-//        });
-//
-//        TODO: remove dummy data
-//        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("d", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("e", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("f", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("g", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
-//        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
+    public void AddItemsToRecyclerViewArrayList(Place currentPlace) {
+        //If location permission is not granted try getting it
+        if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+            // Prompt the user for permission.
+            LocationUtils.getInstance().getLocationPermission(GoogleMapsActivity.this);
+            // Get the current location of the device and set the position of the map.
+            LocationUtils.getInstance().getDeviceLocation();
+        }
+
+        if (currentPlace != null) {
+            // init request
+            // get user id from local cache
+            SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+            String userId = sharedPreferences.getString("user_id", "");
+
+            LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
+                    currentPlace.getId(), currentPlace.getAddress().toString(), false);
+
+            MapsioService mapsioService = MapsioService.Factory.create(this);
+            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
+
+            recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
+                @Override
+                public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
+                    Log.d("RESPONSE", "RESPONSE" + response.toString());
+                    recommendedLocations = new ArrayList<>(response.body());
+                }
+
+                @Override
+                public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
+                    Log.d("FAILURE", "FAILURE" + t.toString());
+                }
+
+            });
+        }
+
     }
 
     public void search(final String searchQuery, AppCompatActivity activity) {
@@ -295,10 +289,10 @@ public class GoogleMapsActivity extends AppCompatActivity
             LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
             LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
 
-            results = mGeoDataClient.getAutocompletePredictions(searchQuery, latlngBounds, null);
+            results = geoDataClient.getAutocompletePredictions(searchQuery, latlngBounds, null);
         } else {
 
-            results = mGeoDataClient.getAutocompletePredictions(searchQuery, null, null);
+            results = geoDataClient.getAutocompletePredictions(searchQuery, null, null);
         }
 
         results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
@@ -334,7 +328,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         Place currentPlace = LocationUtils.getInstance().getCurrPlace();
 
         for (int i = 0; i < placeIdList.size(); i++) {
-            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(placeIdList.get(i));
+            Task<PlaceBufferResponse> result = geoDataClient.getPlaceById(placeIdList.get(i));
 
             while (!result.isComplete()) {} // hack to make things synchronous
 
@@ -395,6 +389,64 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    private void showMarkerDescLayout(final LocationMarkerModel locationObj) {
+        final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
+        TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
+        TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
+        Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
+        Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
+
+        MapsioUtils.getInstance().getPhotos(locationObj.getPlaceId(), geoDataClient, new IPlacePhoto() {
+
+            public void onDownloadCallback(Bitmap bitmap) {
+                locationImageView.setImageBitmap(bitmap);
+            }
+        });
+
+        getDirectionsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                startNavigation(locationObj.getLatLng());
+            }
+        });
+
+        locationTitleTextView.setText(locationObj.getName());
+        locationDescTextView.setText(locationObj.getAddress());
+        // hide recommendations view
+        recommendationsRecyclerView.setVisibility(View.INVISIBLE);
+        // render marker description visible
+        markerDescLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void startVoiceRecognition() {
+        Intent intent = new Intent("android.speech.action.RECOGNIZE_SPEECH");
+        intent.putExtra("android.speech.extra.LANGUAGE_MODEL", "free_form");
+        intent.putExtra("android.speech.extra.PROMPT", "Speak Now");
+        this.startActivityForResult(intent, VOICE_SEARCH_CODE);
+    }
+
+    //start navigation from current location to the selected destination using Google Maps
+    private void startNavigation(LatLng destination) {
+
+        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+
+        if (currentPlace != null) {
+
+            //String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?saddr=%f,%f&daddr=%f,%f", currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude, destination.latitude, destination.longitude);
+            String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", destination.latitude, destination.longitude);
+            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+            startActivity(intent);
+
+        } else {
+
+            MapsioUtils.displayInfoDialog(this, R.string.info_dialog_curr_loc_title,R.string.info_dialog_curr_loc_message);
+        }
+
+    }
+
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -438,8 +490,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         return true;
     }
 
-
-
     /**
      * Called when the user clicks a marker.
      */
@@ -450,7 +500,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         LocationMarkerModel markerObj = markerMap.get(marker.getId());
         if (!markerObj.isPoi() && markerObj.getPlaceId() != null) {
 
-            Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(markerObj.getPlaceId());
+            Task<PlaceBufferResponse> result = geoDataClient.getPlaceById(markerObj.getPlaceId());
             result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
                 @Override
                 public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
@@ -476,36 +526,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         return false;
     }
 
-    private void showMarkerDescLayout(final LocationMarkerModel locationObj) {
-        final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
-        TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
-        TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
-        Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
-        Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
-
-        MapsioUtils.getInstance().getPhotos(locationObj.getPlaceId(), mGeoDataClient, new IPlacePhoto() {
-
-            public void onDownloadCallback(Bitmap bitmap) {
-                locationImageView.setImageBitmap(bitmap);
-            }
-        });
-
-        getDirectionsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                startNavigation(locationObj.getLatLng());
-            }
-        });
-
-        locationTitleTextView.setText(locationObj.getName());
-        locationDescTextView.setText(locationObj.getAddress());
-        // hide recommendations view
-        recommendationsRecyclerView.setVisibility(View.INVISIBLE);
-        // render marker description visible
-        markerDescLayout.setVisibility(View.VISIBLE);
-    }
-
     @Override
     public void onPoiClick(PointOfInterest poi) {
         // Clears the previously touched location
@@ -521,7 +541,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         // add to local cache
         markerMap.put(marker.getId(), new LocationMarkerModel(poi.name, poi.latLng, poi.placeId, true));
 
-        Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(poi.placeId);
+        Task<PlaceBufferResponse> result = geoDataClient.getPlaceById(poi.placeId);
         result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
@@ -576,17 +596,17 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     @Override
+    public void onCurrentLocationReceived(Place currentPlace) {
+        // Adding items to RecyclerView.
+        AddItemsToRecyclerViewArrayList(currentPlace);
+    }
+
+    @Override
     public void onMapClick(LatLng latLng) {
         // make recommendations view visible
         recommendationsRecyclerView.setVisibility(View.VISIBLE);
         // make marker description invisible
         markerDescLayout.setVisibility(View.INVISIBLE);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
     }
 
     @Override
@@ -604,14 +624,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             LocationUtils.getInstance().getDeviceLocation();
         }
         LocationUtils.getInstance().enableMyLocation();
-
-    }
-
-    public void startVoiceRecognition() {
-        Intent intent = new Intent("android.speech.action.RECOGNIZE_SPEECH");
-        intent.putExtra("android.speech.extra.LANGUAGE_MODEL", "free_form");
-        intent.putExtra("android.speech.extra.PROMPT", "Speak Now");
-        this.startActivityForResult(intent, VOICE_SEARCH_CODE);
     }
 
     @Override
@@ -619,40 +631,18 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (requestCode == VOICE_SEARCH_CODE && resultCode == RESULT_OK) {
             ArrayList<String> matches = data.getStringArrayListExtra("android.speech.extra.RESULTS");
 
-            if (mSearchView != null) {
+            if (searchView != null) {
 
-                mSearchView.setSearchText(matches.get(0));
+                searchView.setSearchText(matches.get(0));
                 search(matches.get(0),GoogleMapsActivity.this);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    //start navigation from current location to the selected destination using Google Maps
-    private void startNavigation(LatLng destination) {
-
-        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
-
-        if (currentPlace != null) {
-
-            //String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?saddr=%f,%f&daddr=%f,%f", currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude, destination.latitude, destination.longitude);
-            String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", destination.latitude, destination.longitude);
-            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                    Uri.parse(uri));
-            intent.setPackage("com.google.android.apps.maps");
-            startActivity(intent);
-
-        } else {
-
-            MapsioUtils.displayInfoDialog(this, R.string.info_dialog_curr_loc_title,R.string.info_dialog_curr_loc_message);
-        }
-
-    }
-
     /**
      * Handles the result of the request for location permissions. This has to be activity specific
      */
-
     @SuppressLint("MissingPermission")
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[],

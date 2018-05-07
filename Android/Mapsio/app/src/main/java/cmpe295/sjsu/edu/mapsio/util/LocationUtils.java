@@ -1,6 +1,7 @@
 package cmpe295.sjsu.edu.mapsio.util;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -38,6 +39,7 @@ public class LocationUtils{
     private Place currPlace;
     private GoogleMap googleMap;
     private PlaceDetectionClient placeDetectionClient;
+    private ICurrentLocationService currentLocationService;
 
 
     public void getLocationPermission(AppCompatActivity activity) {
@@ -80,7 +82,7 @@ public class LocationUtils{
                     @Override
                     public void onComplete(@NonNull Task<PlaceLikelihoodBufferResponse> task) {
 
-                        Place currentPlace = null;
+                        currPlace = null;
 
                         if (task.isSuccessful() && task.getResult() != null) {
 
@@ -92,13 +94,11 @@ public class LocationUtils{
                                 if (placeLikelihood.getLikelihood() > maxLikelyVal) {
 
                                     maxLikelyVal = placeLikelihood.getLikelihood();
-                                    currentPlace = placeLikelihood.getPlace().freeze();
-
+                                    currPlace = placeLikelihood.getPlace().freeze();
+                                    currentLocationService.onCurrentLocationReceived(currPlace);
                                 }
 
                             }
-
-                            LocationUtils.getInstance().setCurrPlace(currentPlace);
                             enableMyLocation();
 
                             likelyPlaces.release();
@@ -147,6 +147,7 @@ public class LocationUtils{
         }
     }
 
+    /* GETTERS AND SETTERS */
     public boolean ismLocationPermissionGranted() {
         return mLocationPermissionGranted;
     }
@@ -178,4 +179,13 @@ public class LocationUtils{
     public void setPlaceDetectionClient(PlaceDetectionClient placeDetectionClient) {
         this.placeDetectionClient = placeDetectionClient;
     }
+
+    public ICurrentLocationService getCurrentLocationService() {
+        return currentLocationService;
+    }
+
+    public void setCurrentLocationService(Context context) {
+        this.currentLocationService = (ICurrentLocationService) context;
+    }
+
 }
