@@ -10,8 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -40,6 +38,10 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceFilter;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
+import com.google.android.gms.location.places.PlacePhotoMetadata;
+import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
+import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
+import com.google.android.gms.location.places.PlacePhotoResponse;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -52,18 +54,25 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
+import cmpe295.sjsu.edu.mapsio.util.LocationUtils;
 import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 import cmpe295.sjsu.edu.mapsio.view.CustomMapFragment;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 // https://github.com/googlemaps/android-samples/blob/master/tutorials/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 // https://gist.github.com/ccabanero/6996756
@@ -82,9 +91,6 @@ public class GoogleMapsActivity extends AppCompatActivity
     // provides quick access to the device's current place, and offers the opportunity to report the
     // location of the device at a particular place.
     private PlaceDetectionClient mPlaceDetectionClient;
-    private boolean mLocationPermissionGranted;
-    //current place where the device is located
-    private Place currentPlace;
 
     private ArrayList<LocationMarkerModel> recommendedLocations = new ArrayList<>();
     private Map<String, LocationMarkerModel> markerMap;
@@ -110,11 +116,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mPlaceDetectionClient = Places.getPlaceDetectionClient(this, null);
-
-        // Prompt the user for permission.
-        getLocationPermission();
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
+        LocationUtils.getInstance().setPlaceDetectionClient(mPlaceDetectionClient);
 
         // init map
         CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
@@ -157,7 +159,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onSearchAction(String currentQuery) {
                 googleMap.clear();
-                search(searchText.toString());
+                search(searchText.toString(),GoogleMapsActivity.this);
             }
         });
 
@@ -274,8 +276,8 @@ public class GoogleMapsActivity extends AppCompatActivity
 //            }
 //
 //        });
-
-//        // TODO: remove dummy data
+//
+//        TODO: remove dummy data
 //        recommendedLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
 //        recommendedLocations.add(new LocationMarkerModel("b", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
 //        recommendedLocations.add(new LocationMarkerModel("c", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
@@ -286,16 +288,17 @@ public class GoogleMapsActivity extends AppCompatActivity
 //        recommendedLocations.add(new LocationMarkerModel("h", new LatLng(30, 60), "ChIJa147K9HX3IAR-lwiGIQv9i4"));
     }
 
-    public void search(final String searchQuery) {
+    public void search(final String searchQuery, AppCompatActivity activity) {
         //If location permission is not granted try getting it
-        if (!mLocationPermissionGranted) {
-
-            getLocationPermission();
-            getDeviceLocation();
+        if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+            // Prompt the user for permission.
+            LocationUtils.getInstance().getLocationPermission(activity);
+            // Get the current location of the device and set the position of the map.
+            LocationUtils.getInstance().getDeviceLocation();
         }
 
         Task<AutocompletePredictionBufferResponse> results;
-
+        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
         if (currentPlace != null) {
             //this is just taking the center
             LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
@@ -336,6 +339,8 @@ public class GoogleMapsActivity extends AppCompatActivity
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
         Place firstPlace = null;
+
+        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
 
         for (int i = 0; i < placeIdList.size(); i++) {
             Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(placeIdList.get(i));
@@ -442,23 +447,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         return true;
     }
 
-    @Override
-    public void onMapReady(final GoogleMap googleMap) {
-        this.googleMap = googleMap;
 
-        googleMap.setOnPoiClickListener(this);
-        googleMap.setOnMarkerClickListener(this);
-        googleMap.setOnMapLongClickListener(this);
-        googleMap.setOnMapClickListener(this);
-
-        if (mLocationPermissionGranted) {
-
-            enableMyLocation();
-        } else {
-
-            disableMyLocation();
-        }
-    }
 
     /**
      * Called when the user clicks a marker.
@@ -606,143 +595,25 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        // Prompt the user for permission.
-        getLocationPermission();
-        // Get the current location of the device and set the position of the map.
-        getDeviceLocation();
+
     }
 
-    /**
-     * Prompts the user for permission to use the device location.
-     */
-    private void getLocationPermission() {
-        /*
-         * Request location permission, so that we can get the location of the
-         * device. The result of the permission request is handled by a callback,
-         * onRequestPermissionsResult.
-         */
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            mLocationPermissionGranted = true;
-            enableMyLocation();
-        } else {
-
-            mLocationPermissionGranted = false;
-            disableMyLocation();
-            currentPlace = null;
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
-        }
-    }
-
-    /**
-     * Handles the result of the request for location permissions.
-     */
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
-        mLocationPermissionGranted = false;
-
-        switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mLocationPermissionGranted = true;
-                    enableMyLocation();
-                } else {
-                    mLocationPermissionGranted = false;
-                    disableMyLocation();
-                    currentPlace = null;
-                    //TODO : Snackbar for permission denial
-                }
-            }
+    public void onMapReady(final GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        LocationUtils.getInstance().setGoogleMap(googleMap);
+        googleMap.setOnPoiClickListener(this);
+        googleMap.setOnMarkerClickListener(this);
+        googleMap.setOnMapLongClickListener(this);
+        googleMap.setOnMapClickListener(this);
+        if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+            // Prompt the user for permission.
+            LocationUtils.getInstance().getLocationPermission(this);
+            // Get the current location of the device and set the position of the map.
+            LocationUtils.getInstance().getDeviceLocation();
         }
-        // TODO: inform user of permission need
-    }
+        LocationUtils.getInstance().enableMyLocation();
 
-    /**
-     * Gets the current location of the device, and positions the map's camera.
-     */
-    private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-
-            if (mLocationPermissionGranted) {
-
-                Task<PlaceLikelihoodBufferResponse> locationResult = mPlaceDetectionClient.getCurrentPlace(new PlaceFilter());
-
-                locationResult.addOnCompleteListener(new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<PlaceLikelihoodBufferResponse> task) {
-
-                        if (task.isSuccessful() && task.getResult() != null) {
-
-                            PlaceLikelihoodBufferResponse likelyPlaces = task.getResult();
-
-                            float maxLikelyVal = 0.0F;
-
-                            for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                                if (placeLikelihood.getLikelihood() > maxLikelyVal) {
-
-                                    maxLikelyVal = placeLikelihood.getLikelihood();
-                                    currentPlace = placeLikelihood.getPlace().freeze();
-                                }
-                            }
-
-                            likelyPlaces.release();
-                            Log.d("CURRENT LOCATION", "Current location found.");
-                        } else {
-
-                            Log.d("CURRENT LOCATION", "Current location is null. Using defaults.");
-                            Log.e("CURRENT LOCATION", "Exception: %s", task.getException());
-                        }
-                    }
-
-                });
-
-            }
-
-        } catch (SecurityException e) {
-            Log.e("Exception: %s", e.getMessage());
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private void enableMyLocation() {
-
-        if (googleMap != null) {
-            googleMap.setMyLocationEnabled(true);
-            googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-
-            //update current location when the MyLocationButton is clicker
-            googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
-                @Override
-                public boolean onMyLocationButtonClick() {
-                    Log.d("My Location Button :", "clicked");
-                    Log.d("My Location Button :", "If permission granted :" + mLocationPermissionGranted);
-                    getDeviceLocation();
-
-                    return false;
-                }
-            });
-        }
-    }
-
-    @SuppressLint("MissingPermission")
-    private void disableMyLocation() {
-
-        if(googleMap!=null) {
-            googleMap.setMyLocationEnabled(false);
-            googleMap.getUiSettings().setMyLocationButtonEnabled(false);
-        }
     }
 
     public void startVoiceRecognition() {
@@ -760,7 +631,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             if (mSearchView != null) {
 
                 mSearchView.setSearchText(matches.get(0));
-                search(matches.get(0));
+                search(matches.get(0),GoogleMapsActivity.this);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -768,6 +639,8 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     //start navigation from current location to the selected destination using Google Maps
     private void startNavigation(LatLng destination) {
+
+        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
 
         if (currentPlace != null) {
 
@@ -780,8 +653,37 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         } else {
 
-            //TODO: should we ask location permission again?
+            MapsioUtils.displayInfoDialog(this, R.string.info_dialog_curr_loc_title,R.string.info_dialog_curr_loc_message);
         }
 
     }
+
+    /**
+     * Handles the result of the request for location permissions. This has to be activity specific
+     */
+
+    @SuppressLint("MissingPermission")
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String permissions[],
+                                           @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    LocationUtils.getInstance().setmLocationPermissionGranted(true);
+                    googleMap.setMyLocationEnabled(true);
+                    googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+                } else {
+                    LocationUtils.getInstance().setmLocationPermissionGranted(false);
+                    googleMap.setMyLocationEnabled(false);
+                    googleMap.getUiSettings().setMyLocationButtonEnabled(true);
+                    LocationUtils.getInstance().setCurrPlace(null);
+                }
+            }
+        }
+
+    }
+
 }
