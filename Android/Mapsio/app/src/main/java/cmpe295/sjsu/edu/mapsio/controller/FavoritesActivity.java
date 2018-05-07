@@ -128,16 +128,6 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
         });
 
-        // TODO: remove test/dummy data
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-//        favoriteLocations.add(new LocationMarkerModel("a", new LatLng(30, 60), "PLACEID"));
-
         mAdapter.notifyDataSetChanged();
     }
 

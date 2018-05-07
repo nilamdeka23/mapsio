@@ -73,8 +73,6 @@ public class MapsioUtils {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            // builder = new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Light_Dialog);
-            // builder = new AlertDialog.Builder(this, android.R.style.Theme_Holo_Light_Dialog_NoActionBar_MinWidth);
             builder = new AlertDialog.Builder(context, R.style.CustomAlertDialogTheme);
         } else {
 

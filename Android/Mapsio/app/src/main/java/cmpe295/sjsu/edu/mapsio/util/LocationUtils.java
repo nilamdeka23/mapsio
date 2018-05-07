@@ -1,14 +1,12 @@
 package cmpe295.sjsu.edu.mapsio.util;
 
 import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceDetectionClient;
@@ -19,27 +17,27 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
-import cmpe295.sjsu.edu.mapsio.R;
 
 public class LocationUtils{
 
-    private static LocationUtils locationUtils = new LocationUtils();
+    private static LocationUtils instance = null;
 
-    private Place currPlace;
-
-    private boolean mLocationPermissionGranted = false;
-
-    private GoogleMap googleMap;
-
-    private PlaceDetectionClient placeDetectionClient;
-
-    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
-
-    private LocationUtils(){}
+    private LocationUtils() {
+    }
 
     public static LocationUtils getInstance() {
-        return locationUtils;
+        if (instance == null) {
+            instance = new LocationUtils();
+        }
+        return instance;
     }
+
+    private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
+    private boolean mLocationPermissionGranted = false;
+
+    private Place currPlace;
+    private GoogleMap googleMap;
+    private PlaceDetectionClient placeDetectionClient;
 
 
     public void getLocationPermission(AppCompatActivity activity) {
@@ -66,8 +64,6 @@ public class LocationUtils{
                     PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
     }
-
-
 
     public void getDeviceLocation() {
         /*
@@ -174,7 +170,6 @@ public class LocationUtils{
     public void setGoogleMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
     }
-
 
     public PlaceDetectionClient getPlaceDetectionClient() {
         return placeDetectionClient;
