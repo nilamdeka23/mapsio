@@ -26,20 +26,18 @@
         <item name="colorControlNormal">#FDD835</item>
         <item name="colorControlActivated">#FDD835</item>
     </style>
-    Theme_Holo_Light_Dialog_NoActionBar_MinWidth
 
     <style name ="CustomAlertDialogTheme" parent="Theme.AppCompat.Light.Dialog.MinWidth">
-        <item name="titleTextColor">@color/teal</item>
+        <item name="titleTextColor">@color/colorPrimary</item>
         <!--<item name="android:titleTextAppearance">Text</item>-->
-        <item name="android:textColor">@color/teal</item>
+        <item name="android:textColor">@color/colorPrimary</item>
         <item name="android:buttonBarButtonStyle">@style/AlertDialogButton</item>
     </style>
 
     <style name="AlertDialogButton" parent="@style/Widget.AppCompat.Button.ButtonBar.AlertDialog">
-        <item name="colorButtonNormal">@color/teal</item>
-        <item name="android:backgroundTint">@color/teal</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="colorButtonNormal">@color/colorPrimary</item>
+        <item name="android:backgroundTint">@color/colorAccent</item>
+        <item name="android:textColor">@android:color/white</item>
     </style>
-
 
 </resources>

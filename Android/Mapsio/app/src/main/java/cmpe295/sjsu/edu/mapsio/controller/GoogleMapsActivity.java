@@ -35,13 +35,6 @@ import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBufferResponse;
 import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.PlaceFilter;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
-import com.google.android.gms.location.places.PlacePhotoMetadata;
-import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
-import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
-import com.google.android.gms.location.places.PlacePhotoResponse;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -54,7 +47,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,7 +98,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         // init local marker dictionary/hashmap
         markerMap = new HashMap<>();
-
         // init marker description layout
         markerDescLayout = findViewById(R.id.marker_desc_layout);
 
@@ -457,7 +448,7 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         // Retrieve the data from the marker.
         LocationMarkerModel markerObj = markerMap.get(marker.getId());
-        if (markerObj.getPlaceId() != null) {
+        if (!markerObj.isPoi() && markerObj.getPlaceId() != null) {
 
             Task<PlaceBufferResponse> result = mGeoDataClient.getPlaceById(markerObj.getPlaceId());
             result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {

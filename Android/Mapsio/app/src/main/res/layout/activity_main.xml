@@ -24,7 +24,7 @@
             android:id="@+id/floating_search_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:floatingSearch_backgroundColor="@color/teal"
+            app:floatingSearch_backgroundColor="@color/colorPrimary"
             app:floatingSearch_clearBtnColor="@android:color/white"
             app:floatingSearch_close_search_on_keyboard_dismiss="true"
             app:floatingSearch_dividerColor="@android:color/white"

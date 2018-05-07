@@ -18,7 +18,7 @@
         android:layout_width="match_parent"
         android:padding="16dp"
         android:layout_gravity="center"
-        android:background="@color/white">
+        android:background="@android:color/white">
 
 
         <TextView
