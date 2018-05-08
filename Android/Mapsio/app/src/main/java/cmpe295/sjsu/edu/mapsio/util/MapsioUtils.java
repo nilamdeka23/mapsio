@@ -38,23 +38,27 @@ public class MapsioUtils {
         photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
-                // Get the list of photos.
-                PlacePhotoMetadataResponse photos = task.getResult();
-                // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
-                PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
-                // Get the first photo in the list.
-                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0).freeze();
-                photoMetadataBuffer.release();
-                // Get the attribution text.
-                CharSequence attribution = photoMetadata.getAttributions();
-                Task<PlacePhotoResponse> photoResponse = geoDataClient.getPhoto(photoMetadata);
-                photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
-                    @Override
-                    public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
-                        PlacePhotoResponse photo = task.getResult();
-                        iPlacePhoto.onDownloadCallback(photo.getBitmap());
+                if (task.isSuccessful() && task.getResult() != null) {
+                    // Get the list of photos.
+                    PlacePhotoMetadataResponse photos = task.getResult();
+                    // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
+                    PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
+                    // Get the first photo in the list.
+                    if (photoMetadataBuffer != null && photoMetadataBuffer.getCount() != 0) {
+                        PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0).freeze();
+                        // Get the attribution text.
+                        CharSequence attribution = photoMetadata.getAttributions();
+                        Task<PlacePhotoResponse> photoResponse = geoDataClient.getPhoto(photoMetadata);
+                        photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
+                            @Override
+                            public void onComplete(@NonNull Task<PlacePhotoResponse> task) {
+                                PlacePhotoResponse photo = task.getResult();
+                                iPlacePhoto.onDownloadCallback(photo.getBitmap());
+                            }
+                        });
                     }
-                });
+                    photoMetadataBuffer.release();
+                }
             }
         });
     }

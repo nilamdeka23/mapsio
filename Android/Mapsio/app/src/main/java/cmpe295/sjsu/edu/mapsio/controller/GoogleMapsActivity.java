@@ -388,6 +388,8 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     private void showMarkerDescLayout(final LocationMarkerModel locationObj) {
         final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
+        // TODO: appropriate placeholder image
+        locationImageView.setImageResource(R.mipmap.ic_launcher);
         TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
         TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
         Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
@@ -571,7 +573,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
                 Log.d("RESPONSE", "RESPONSE" + response.toString());
                 LocationMarkerModel dropPin = response.body();
-
                 // Clears the previously touched position
                 if (googleMap != null)
                     googleMap.clear();
