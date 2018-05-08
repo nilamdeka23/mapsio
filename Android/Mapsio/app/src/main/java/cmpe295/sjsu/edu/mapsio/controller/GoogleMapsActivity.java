@@ -311,6 +311,9 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
+
+        //clear the google map before marking new places
+        googleMap.clear();
         //save the place whose name matches the search query
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
@@ -635,7 +638,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 search(matches.get(0),GoogleMapsActivity.this);
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
+        //super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
