@@ -25,10 +25,15 @@ public interface MapsioService {
     Call<LocationMarkerModel> getPlaceDetail(@Body LatLngModel placeDetailRequest);
 
     @POST("api/users/recommendations")
-    Call<List<LocationMarkerModel>> getRecommendedLocations(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
+    Call<List<LocationMarkerModel>> getRecommendedLocations(@Query("userId") String userId,
+                                                            @Body LocationMarkerModel locationMarkerModel);
 
     @GET("/api/favorites")
     Call<List<LocationMarkerModel>> getFavorites(@Query("userId") String userId);
+
+    @POST("/api/favorites")
+    Call<LocationMarkerModel> addFavorite(@Query("userId") String userId,
+                                                @Body LocationMarkerModel locationMarkerModel);
 
 
     class Factory {

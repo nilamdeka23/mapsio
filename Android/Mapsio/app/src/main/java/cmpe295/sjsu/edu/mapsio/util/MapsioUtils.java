@@ -32,8 +32,14 @@ public class MapsioUtils {
         return instance;
     }
 
+    private GeoDataClient geoDataClient;
+
+    public void setGeoDataClient(GeoDataClient geoDataClient) {
+        this.geoDataClient = geoDataClient;
+    }
+
     // Request photos and metadata for the specified place.
-    public void getPhotos(String placeId, final GeoDataClient geoDataClient, final IPlacePhoto iPlacePhoto) {
+    public void getPhotos(String placeId, final IPlacePhoto iPlacePhoto) {
         final Task<PlacePhotoMetadataResponse> photoMetadataResponse = geoDataClient.getPlacePhotos(placeId);
         photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
             @Override

@@ -1,6 +1,7 @@
 package cmpe295.sjsu.edu.mapsio.controller.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +12,12 @@ import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.List;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
+import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 
 /**
  * Created by laddu on 3/12/18.
@@ -76,7 +77,14 @@ public class FavoritesListAdapter extends RecyclerView.Adapter<FavoritesListAdap
     public void onBindViewHolder(final MyViewHolder holder, int position) {
         final LocationMarkerModel favoriteLocation = favoriteList.get(position);
 
-        //Picasso.with(context).load(favoriteLocation.getImageURL()).into(holder.locationImage);
+        MapsioUtils.getInstance().getPhotos(favoriteLocation.getPlaceId(), new IPlacePhoto() {
+
+            public void onDownloadCallback(Bitmap bitmap) {
+
+                holder.locationImage.setImageBitmap(bitmap);
+            }
+        });
+
         holder.locationName.setText(favoriteLocation.getName());
         holder.locationAddress.setText(favoriteLocation.getAddress());
         holder.locationRating.setRating(favoriteLocation.getRating());

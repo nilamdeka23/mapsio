@@ -117,7 +117,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
             @Override
             public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                 // TODO: show loading indicator
-                favoriteLocations = new ArrayList<>(response.body());
+                favoriteLocations.addAll(response.body());
                 mAdapter.notifyDataSetChanged();
             }
 
@@ -128,7 +128,6 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
         });
 
-        mAdapter.notifyDataSetChanged();
     }
 
     @Override

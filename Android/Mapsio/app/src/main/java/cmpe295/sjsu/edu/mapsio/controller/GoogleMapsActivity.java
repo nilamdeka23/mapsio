@@ -25,6 +25,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
@@ -56,8 +57,8 @@ import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
-import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.model.LatLngModel;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.util.ICurrentLocationService;
 import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
@@ -92,6 +93,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     private RecyclerView recommendationsRecyclerView;
     private RecommendationsViewAdapter recommendationsViewAdapter;
     private FloatingSearchView searchView;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +108,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         geoDataClient = Places.getGeoDataClient(this, null);
+        MapsioUtils.getInstance().setGeoDataClient(geoDataClient);
         // provides quick access to the device's current place, and offers the opportunity to report the
         // location of the device at a particular place.
         PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(this, null);
@@ -146,8 +149,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
-                Log.d("Search Bar","onSuggestionClicked");
-
             }
 
             @Override
@@ -163,7 +164,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
 
-                Log.d("Mic clicked", item.getTitle().toString());
                 startVoiceRecognition();
             }
 
@@ -173,6 +173,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         String name = sharedPreferences.getString("user_name", "");
         String email = sharedPreferences.getString("email", "");
         String picURL = sharedPreferences.getString("profile_pic_url", "");
+        userId = sharedPreferences.getString("user_id", "");
 
         View header = navigationView.getHeaderView(0);
 
@@ -243,10 +244,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         if (currentPlace != null) {
             // init request
-            // get user id from local cache
-            SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
-            String userId = sharedPreferences.getString("user_id", "");
-
             LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
                     currentPlace.getId(), currentPlace.getAddress().toString(), false);
 
@@ -256,15 +253,14 @@ public class GoogleMapsActivity extends AppCompatActivity
             recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
                 @Override
                 public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
-                    Log.d("RESPONSE", "RESPONSE" + response.toString());
-                    recommendedLocations = new ArrayList<>(response.body());
+
+                    recommendedLocations.addAll(response.body());
                     recommendationsViewAdapter.notifyDataSetChanged();
                     recommendationsRecyclerView.setVisibility(View.VISIBLE);
                 }
 
                 @Override
                 public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
-                    Log.d("FAILURE", "FAILURE" + t.toString());
                 }
 
             });
@@ -305,7 +301,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                     for (AutocompletePrediction prediction : response) {
 
                         placeIdList.add(prediction.getPlaceId());
-                        Log.d("Predicted places: ", prediction.getPrimaryText(null).toString());
                     }
 
                     markPlaces(placeIdList, searchQuery);
@@ -378,7 +373,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         } else {
 
-            Log.d("markPlaces : ", "Current Place is null");
             if (googleMap != null && mostLikelyPlaceByName != null) {
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 13));
             }
@@ -394,10 +388,12 @@ public class GoogleMapsActivity extends AppCompatActivity
         TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
         Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);
         Button getDirectionsButton = (Button) markerDescLayout.findViewById(R.id.get_directions_button);
+        RatingBar ratingBar = (RatingBar) markerDescLayout.findViewById(R.id.ratingBar);
 
-        MapsioUtils.getInstance().getPhotos(locationObj.getPlaceId(), geoDataClient, new IPlacePhoto() {
+        MapsioUtils.getInstance().getPhotos(locationObj.getPlaceId(), new IPlacePhoto() {
 
             public void onDownloadCallback(Bitmap bitmap) {
+
                 locationImageView.setImageBitmap(bitmap);
             }
         });
@@ -410,8 +406,33 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
         });
 
+        favUnfavButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // init request
+                MapsioService mapsioService = MapsioService.Factory.create(GoogleMapsActivity.this);
+                Call<LocationMarkerModel> addFavoriteCall = mapsioService.addFavorite(userId, locationObj);
+
+                addFavoriteCall.enqueue(new Callback<LocationMarkerModel>() {
+                    @Override
+                    public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                        Log.d("RESPONSE", "RESPONSE + " + response.toString());
+                    }
+
+                    @Override
+                    public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                        Log.d("FAILURE", "FAILURE + " + t.toString());
+                    }
+
+                });
+
+            }
+        });
+
         locationTitleTextView.setText(locationObj.getName());
         locationDescTextView.setText(locationObj.getAddress());
+        ratingBar.setRating(locationObj.getRating());
         // hide recommendations view
         recommendationsRecyclerView.setVisibility(View.INVISIBLE);
         // render marker description visible
@@ -571,7 +592,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         placeDetailRequestCall.enqueue(new Callback<LocationMarkerModel>() {
             @Override
             public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
-                Log.d("RESPONSE", "RESPONSE" + response.toString());
+
                 LocationMarkerModel dropPin = response.body();
                 // Clears the previously touched position
                 if (googleMap != null)
@@ -590,7 +611,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             @Override
             public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
-                Log.d("FAILURE", "FAILURE" + t.toString());
             }
 
         });

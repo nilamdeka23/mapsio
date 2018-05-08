@@ -28,7 +28,6 @@
         android:ellipsize="end"
         android:singleLine="true"
         android:textStyle="bold"
-        android:text="AAAAAAAAAAAAAAAAAAAA"
         android:textSize="18sp" />
 
     <TextView
@@ -42,8 +41,7 @@
         android:textSize="16sp"
         android:layout_toLeftOf="@+id/fav_unfav_button"
         android:layout_toRightOf="@+id/location_imageView"
-        android:singleLine="true"
-        android:text="AAAAAAAAAAAAAAAAAAAA" />
+        android:singleLine="true" />
 
     <RatingBar
         android:id="@+id/ratingBar"
@@ -55,7 +53,6 @@
         android:layout_marginTop="4dp"
         android:layout_toRightOf="@+id/location_imageView"
         android:max="5"
-        android:rating="4.5"
         android:scaleX=".4"
         android:scaleY=".4"
         android:stepSize="0.5"
