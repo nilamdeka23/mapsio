@@ -312,6 +312,9 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
+
+        //clear the google map before marking new places
+        googleMap.clear();
         //save the place whose name matches the search query
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
