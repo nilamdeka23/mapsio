@@ -3,20 +3,27 @@ package cmpe295.sjsu.edu.mapsio.util;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.places.PlaceDetectionClient;
-import com.google.android.gms.location.places.PlaceFilter;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import cmpe295.sjsu.edu.mapsio.model.LatLngModel;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 
 
 public class LocationUtils{
@@ -36,10 +43,12 @@ public class LocationUtils{
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private boolean mLocationPermissionGranted = false;
 
-    private Place currPlace;
+    private LocationMarkerModel currPlace;
     private GoogleMap googleMap;
     private PlaceDetectionClient placeDetectionClient;
     private ICurrentLocationService currentLocationService;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+
 
 
     public void getLocationPermission(AppCompatActivity activity) {
@@ -56,7 +65,7 @@ public class LocationUtils{
             mLocationPermissionGranted = true;
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-            getDeviceLocation();
+            getDeviceLocation(activity);
         } else {
             mLocationPermissionGranted = false;
             googleMap.setMyLocationEnabled(false);
@@ -68,16 +77,47 @@ public class LocationUtils{
         }
     }
 
-    public void getDeviceLocation() {
+    public void getDeviceLocation(final AppCompatActivity activity) {
         /*
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
          */
         try {
 
-            if (mLocationPermissionGranted && placeDetectionClient!=null) {
+            if (mLocationPermissionGranted && fusedLocationProviderClient!=null) {
+                /*fusedLocationProviderClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
 
-                Task<PlaceLikelihoodBufferResponse> locationResult = placeDetectionClient.getCurrentPlace(new PlaceFilter());
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            Log.d("Current device latitude",""+location.getLatitude());
+                            // Get place details from the web service and update the currPlace object
+                            updateCurrentLocation(applicationContext, location);
+                        }
+
+                    }
+                });*/
+                Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
+
+                locationResult.addOnCompleteListener(activity,new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+
+                        if(task.isComplete() && task.isSuccessful()){
+                            Location location = task.getResult();
+                            if(location!=null) {
+                                updateCurrentLocation(activity, location);
+                                enableMyLocation(activity);
+                                //TODO: discuss with Nilam as now currPlace will be updated asynchrnously
+                                currentLocationService.onCurrentLocationReceived(currPlace);
+                            }
+                        }
+
+                    }
+                });
+
+               /* Task<PlaceLikelihoodBufferResponse> locationResult = placeDetectionClient.getCurrentPlace(new PlaceFilter());
 
                 locationResult.addOnCompleteListener(new OnCompleteListener<PlaceLikelihoodBufferResponse>() {
                     @Override
@@ -113,7 +153,7 @@ public class LocationUtils{
                         }
 
                     }
-                });
+                });*/
 
             }
 
@@ -123,7 +163,7 @@ public class LocationUtils{
     }
 
     @SuppressLint("MissingPermission")
-    public void enableMyLocation() {
+    public void enableMyLocation(final AppCompatActivity activity) {
         if (googleMap != null) {
 
             //update current location when the MyLocationButton is clicker
@@ -134,7 +174,7 @@ public class LocationUtils{
                     Log.d("My Location Button :", "If permission granted :" + mLocationPermissionGranted);
                     // Get the current location of the device and set the position of the map.
                     if(mLocationPermissionGranted) {
-                        LocationUtils.getInstance().getDeviceLocation();
+                        LocationUtils.getInstance().getDeviceLocation(activity);
                         googleMap.setMyLocationEnabled(true);
                         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
                     }else{
@@ -147,6 +187,32 @@ public class LocationUtils{
         }
     }
 
+    public void updateCurrentLocation(Context context, Location location) {
+
+        MapsioService mapsioService = MapsioService.Factory.create(context);
+        Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new LatLngModel(location.getLatitude(),
+                location.getLongitude()));
+
+        placeDetailRequestCall.enqueue(new Callback<LocationMarkerModel>() {
+            @Override
+            public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                Log.d("RESPONSE", "RESPONSE" + response.toString());
+                LocationMarkerModel updatedLocationLocation = response.body();
+                if(updatedLocationLocation!=null) {
+                    Log.d("Place Id of curr loc",""+updatedLocationLocation.getPlaceId());
+                    currPlace = updatedLocationLocation;
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(currPlace.getLatLng()));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                Log.d("FAILURE", "FAILURE" + t.toString());
+            }
+
+        });
+    }
+
     /* GETTERS AND SETTERS */
     public boolean ismLocationPermissionGranted() {
         return mLocationPermissionGranted;
@@ -156,11 +222,11 @@ public class LocationUtils{
         this.mLocationPermissionGranted = mLocationPermissionGranted;
     }
 
-    public Place getCurrPlace() {
+    public LocationMarkerModel getCurrPlace() {
         return currPlace;
     }
 
-    public void setCurrPlace(Place currPlace) {
+    public void setCurrPlace(LocationMarkerModel currPlace) {
         this.currPlace = currPlace;
     }
 
@@ -187,5 +253,15 @@ public class LocationUtils{
     public void setCurrentLocationService(Context context) {
         this.currentLocationService = (ICurrentLocationService) context;
     }
+
+    public FusedLocationProviderClient getFusedLocationProviderClient() {
+        return fusedLocationProviderClient;
+    }
+
+    public void setFusedLocationProviderClient(FusedLocationProviderClient fusedLocationProviderClient) {
+        this.fusedLocationProviderClient = fusedLocationProviderClient;
+    }
+
+
 
 }

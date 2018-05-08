@@ -1,8 +1,8 @@
 package cmpe295.sjsu.edu.mapsio.util;
 
-import com.google.android.gms.location.places.Place;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 
 public interface ICurrentLocationService {
 
-    void onCurrentLocationReceived(Place currentPlace);
+    void onCurrentLocationReceived(LocationMarkerModel currentPlace);
 }

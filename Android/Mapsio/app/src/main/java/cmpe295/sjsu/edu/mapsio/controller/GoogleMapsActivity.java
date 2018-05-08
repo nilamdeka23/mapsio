@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,6 +30,11 @@ import android.widget.TextView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBufferResponse;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -75,7 +81,7 @@ import retrofit2.Response;
 public class GoogleMapsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback,
         GoogleMap.OnMarkerClickListener, GoogleMap.OnPoiClickListener, GoogleMap.OnMapLongClickListener,
-        GoogleMap.OnMapClickListener, ICurrentLocationService {
+        GoogleMap.OnMapClickListener, ICurrentLocationService, LocationListener {
 
     private static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1;
     private static final int VOICE_SEARCH_CODE = 3012;
@@ -83,6 +89,10 @@ public class GoogleMapsActivity extends AppCompatActivity
     private GoogleMap googleMap;
     // provides access to Google's database of local place and business information.
     private GeoDataClient geoDataClient;
+
+    //provider to get last known location
+    private FusedLocationProviderClient mFusedLocationClient;
+
 
     private ArrayList<LocationMarkerModel> recommendedLocations = new ArrayList<>();
     private Map<String, LocationMarkerModel> markerMap;
@@ -92,11 +102,18 @@ public class GoogleMapsActivity extends AppCompatActivity
     private RecyclerView recommendationsRecyclerView;
     private RecommendationsViewAdapter recommendationsViewAdapter;
     private FloatingSearchView searchView;
+    private LocationCallback mLocationCallback;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //TODO:Need to delete this after testing
+        setUserIdInSharedPreferences();
+
+
         // init local marker dictionary/hashmap
         markerMap = new HashMap<>();
         // init marker description layout
@@ -106,11 +123,31 @@ public class GoogleMapsActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         geoDataClient = Places.getGeoDataClient(this, null);
+
+        //Create an instance of fused location provider
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         // provides quick access to the device's current place, and offers the opportunity to report the
         // location of the device at a particular place.
         PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(this, null);
+
         LocationUtils.getInstance().setPlaceDetectionClient(placeDetectionClient);
+        LocationUtils.getInstance().setFusedLocationProviderClient(mFusedLocationClient);
         LocationUtils.getInstance().setCurrentLocationService(this);
+
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                Location location = locationResult.getLastLocation();
+                if(location!=null) {
+                    LocationUtils.getInstance().updateCurrentLocation(GoogleMapsActivity.this,location);
+                }
+            };
+        };
+
 
         // init map
         CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
@@ -238,8 +275,17 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    private void setUserIdInSharedPreferences() {
+        // store data in local application cache
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data",
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("user_id", "115796992522262979727");
+        editor.apply();
+    }
+
     // function to add items in RecyclerView.
-    public void AddItemsToRecyclerViewArrayList(Place currentPlace) {
+    public void AddItemsToRecyclerViewArrayList(LocationMarkerModel currentPlace) {
 
         if (currentPlace != null) {
             // init request
@@ -248,7 +294,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             String userId = sharedPreferences.getString("user_id", "");
 
             LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
-                    currentPlace.getId(), currentPlace.getAddress().toString(), false);
+                    currentPlace.getPlaceId(), currentPlace.getAddress().toString(), false);
 
             MapsioService mapsioService = MapsioService.Factory.create(this);
             Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
@@ -280,7 +326,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
 
         Task<AutocompletePredictionBufferResponse> results;
-        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+        LocationMarkerModel currentPlace = LocationUtils.getInstance().getCurrPlace();
         if (currentPlace != null) {
             //this is just taking the center
             LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
@@ -322,7 +368,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         //save the first place in the list
         Place firstPlace = null;
 
-        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+        LocationMarkerModel currentPlace = LocationUtils.getInstance().getCurrPlace();
 
         for (int i = 0; i < placeIdList.size(); i++) {
             Task<PlaceBufferResponse> result = geoDataClient.getPlaceById(placeIdList.get(i));
@@ -428,7 +474,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     //start navigation from current location to the selected destination using Google Maps
     private void startNavigation(LatLng destination) {
 
-        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+        LocationMarkerModel currentPlace = LocationUtils.getInstance().getCurrPlace();
 
         if (currentPlace != null) {
 
@@ -598,7 +644,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onCurrentLocationReceived(Place currentPlace) {
+    public void onCurrentLocationReceived(LocationMarkerModel currentPlace) {
         // Adding items to RecyclerView.
         AddItemsToRecyclerViewArrayList(currentPlace);
     }
@@ -623,8 +669,10 @@ public class GoogleMapsActivity extends AppCompatActivity
             // Prompt the user for permission.
             LocationUtils.getInstance().getLocationPermission(this);
         }
-        LocationUtils.getInstance().enableMyLocation();
+        LocationUtils.getInstance().enableMyLocation(GoogleMapsActivity.this);
     }
+
+    
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -654,7 +702,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     LocationUtils.getInstance().setmLocationPermissionGranted(true);
                     // Get the current location of the device and set the position of the map.
-                    LocationUtils.getInstance().getDeviceLocation();
+                    LocationUtils.getInstance().getDeviceLocation(GoogleMapsActivity.this);
 
                     googleMap.setMyLocationEnabled(true);
                     googleMap.getUiSettings().setMyLocationButtonEnabled(true);
@@ -671,4 +719,8 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
 }
