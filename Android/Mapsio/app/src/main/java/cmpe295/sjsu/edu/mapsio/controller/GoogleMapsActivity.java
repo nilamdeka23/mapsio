@@ -660,7 +660,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 search(matches.get(0),GoogleMapsActivity.this);
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
+        //super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
