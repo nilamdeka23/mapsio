@@ -76,7 +76,7 @@ public class FavoritesListAdapter extends RecyclerView.Adapter<FavoritesListAdap
     public void onBindViewHolder(final MyViewHolder holder, int position) {
         final LocationMarkerModel favoriteLocation = favoriteList.get(position);
 
-        Picasso.with(context).load(favoriteLocation.getImageURL()).into(holder.locationImage);
+        //Picasso.with(context).load(favoriteLocation.getImageURL()).into(holder.locationImage);
         holder.locationName.setText(favoriteLocation.getName());
         holder.locationAddress.setText(favoriteLocation.getAddress());
         holder.locationRating.setRating(favoriteLocation.getRating());

@@ -185,14 +185,14 @@ public class SettingsActivity extends AppCompatActivity implements GoogleApiClie
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
-        Toast.makeText(SettingsActivity.this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, connectionResult.getErrorMessage(), Toast.LENGTH_SHORT).show();
     }
 
     private void enableMyLocation(){
 
         if(LocationUtils.getInstance().getCurrPlace()!=null){
 
-            MapsioUtils.displayInfoDialog(this.getApplicationContext(), R.string.settings_curr_loc,R.string.curr_loc_alrdy_enabled_msg);
+            MapsioUtils.displayInfoDialog(this, R.string.settings_curr_loc,R.string.curr_loc_alrdy_enabled_msg);
 
         }else {
 

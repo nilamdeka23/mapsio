@@ -57,7 +57,7 @@ import java.util.Map;
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.controller.adapter.RecommendationsViewAdapter;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
-import cmpe295.sjsu.edu.mapsio.model.PlaceDetailRequestModel;
+import cmpe295.sjsu.edu.mapsio.model.LatLngModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
 import cmpe295.sjsu.edu.mapsio.util.ICurrentLocationService;
 import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
@@ -563,14 +563,14 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     public void onMapLongClick(final LatLng latLng) {
         MapsioService mapsioService = MapsioService.Factory.create(this);
-        Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new PlaceDetailRequestModel(latLng.latitude,
+        Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new LatLngModel(latLng.latitude,
                 latLng.longitude));
 
         placeDetailRequestCall.enqueue(new Callback<LocationMarkerModel>() {
             @Override
             public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
                 Log.d("RESPONSE", "RESPONSE" + response.toString());
-                LocationMarkerModel selectedLocation = response.body();
+                LocationMarkerModel dropPin = response.body();
 
                 // Clears the previously touched position
                 if (googleMap != null)
@@ -579,7 +579,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                 // Creating a marker
                 Marker marker = googleMap.addMarker(new MarkerOptions()
                         .position(latLng)
-                        .title(latLng.latitude + " : " + latLng.longitude));
+                        .title(dropPin.getName()));
+                // add to local cache
+                markerMap.put(marker.getId(), dropPin);
 
                 // Animating to the touched position
                 googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));

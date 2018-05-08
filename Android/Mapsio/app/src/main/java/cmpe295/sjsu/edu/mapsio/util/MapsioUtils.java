@@ -43,7 +43,8 @@ public class MapsioUtils {
                 // Get the PlacePhotoMetadataBuffer (metadata for all of the photos).
                 PlacePhotoMetadataBuffer photoMetadataBuffer = photos.getPhotoMetadata();
                 // Get the first photo in the list.
-                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0);
+                PlacePhotoMetadata photoMetadata = photoMetadataBuffer.get(0).freeze();
+                photoMetadataBuffer.release();
                 // Get the attribution text.
                 CharSequence attribution = photoMetadata.getAttributions();
                 Task<PlacePhotoResponse> photoResponse = geoDataClient.getPhoto(photoMetadata);
@@ -54,7 +55,6 @@ public class MapsioUtils {
                         iPlacePhoto.onDownloadCallback(photo.getBitmap());
                     }
                 });
-                photoMetadataBuffer.release();
             }
         });
     }

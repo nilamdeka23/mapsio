@@ -1,14 +1,22 @@
 package cmpe295.sjsu.edu.mapsio.model;
 
-public class PlaceDetailRequestModel {
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
+public class LatLngModel {
+
+    @SerializedName("lat")
+    @Expose
     private Double latitude;
+
+    @SerializedName("lng")
+    @Expose
     private Double longitude;
 
-    public PlaceDetailRequestModel() {
+    public LatLngModel() {
     }
 
-    public PlaceDetailRequestModel(Double latitude, Double longitude) {
+    public LatLngModel(Double latitude, Double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }

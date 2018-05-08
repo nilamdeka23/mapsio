@@ -51,7 +51,7 @@ public class RecommendationsViewAdapter extends RecyclerView.Adapter<Recommendat
     public void onBindViewHolder(final MyView holder, final int position) {
 
         holder.recommendationTitle.setText(list.get(position).getName());
-        Picasso.with(context).load(list.get(position).getImageURL()).into(holder.recommendationImage);
+        //Picasso.with(context).load(list.get(position).getImageURL()).into(holder.recommendationImage);
     }
 
     @Override
