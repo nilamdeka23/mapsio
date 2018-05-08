@@ -12,6 +12,7 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
@@ -28,12 +29,23 @@ public interface MapsioService {
     Call<List<LocationMarkerModel>> getRecommendedLocations(@Query("userId") String userId,
                                                             @Body LocationMarkerModel locationMarkerModel);
 
+    // TODO: remove this dummy request
+    @POST("api/users/recommendation")
+    Call<List<LocationMarkerModel>> getRecommendedLocation(@Query("userId") String userId,
+                                                           @Body LocationMarkerModel locationMarkerModel);
+
     @GET("/api/favorites")
     Call<List<LocationMarkerModel>> getFavorites(@Query("userId") String userId);
 
     @POST("/api/favorites")
-    Call<LocationMarkerModel> addFavorite(@Query("userId") String userId,
-                                                @Body LocationMarkerModel locationMarkerModel);
+    Call<LocationMarkerModel> addFavorite(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
+
+    @DELETE("/api/favorites")
+    Call<LocationMarkerModel> deleteFavorite(@Query("userId") String userId, @Query("locationName") String name);
+
+//    @POST("/api/trips")
+//    Call<LocationMarkerModel> registerTrip(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
+
 
 
     class Factory {

@@ -13,7 +13,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.View;
 
 import java.util.ArrayList;
@@ -24,6 +23,7 @@ import cmpe295.sjsu.edu.mapsio.controller.adapter.FavoritesListAdapter;
 import cmpe295.sjsu.edu.mapsio.controller.listener.RecyclerTouchListener;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 import cmpe295.sjsu.edu.mapsio.util.RecyclerItemTouchHelper;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -36,6 +36,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
     private FavoritesListAdapter mAdapter;
     private CoordinatorLayout coordinatorLayout;
     private MapsioService mapsioService;
+    private String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,9 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
         setContentView(R.layout.activity_favorites);
         Toolbar toolbar = (Toolbar) findViewById(R.id.fav_toolbar);
         setSupportActionBar(toolbar);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+        userId = sharedPreferences.getString("user_id", "");
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.fav_coordinator_layout);
         mAdapter = new FavoritesListAdapter(this, favoriteLocations);
@@ -57,8 +61,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
             @Override
             public void onClick(View view, int position) {
-                final LocationMarkerModel favoriteLocation = favoriteLocations.get(position);
-                Log.d("Position Clicked : ", position + "");
+//                final LocationMarkerModel favoriteLocation = favoriteLocations.get(position);
             }
 
             @Override
@@ -80,28 +83,57 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction, int position) {
         if (viewHolder instanceof FavoritesListAdapter.MyViewHolder) {
             // get the removed item name to display it in snack bar
-            String name = favoriteLocations.get(viewHolder.getAdapterPosition()).getName();
-
+            final String name = favoriteLocations.get(viewHolder.getAdapterPosition()).getName();
             // backup of removed item for undo purpose
             final LocationMarkerModel deletedLocation = favoriteLocations.get(viewHolder.getAdapterPosition());
             final int deletedIndex = viewHolder.getAdapterPosition();
+            // delete request
+            MapsioService mapsioService = MapsioService.Factory.create(this);
+            Call<LocationMarkerModel> deleteFavoriteCall = mapsioService.deleteFavorite(userId, name);
+
+            deleteFavoriteCall.enqueue(new Callback<LocationMarkerModel>() {
+                @Override
+                public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                    // TODO: remove hardcoded string
+                    // showing snack bar with Undo option
+                    Snackbar snackbar = Snackbar
+                            .make(coordinatorLayout, name + " removed from favorites!", Snackbar.LENGTH_LONG);
+                    snackbar.setAction(getString(R.string.undo).toUpperCase(), new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            // add request
+                            MapsioService mapsioService = MapsioService.Factory.create(FavoritesActivity.this);
+                            Call<LocationMarkerModel> addFavoriteCall = mapsioService.addFavorite(userId, deletedLocation);
+
+                            addFavoriteCall.enqueue(new Callback<LocationMarkerModel>() {
+
+                                @Override
+                                public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                                    // undo is selected, restore the deleted item
+                                    mAdapter.restoreItem(deletedLocation, deletedIndex);
+                                }
+
+                                @Override
+                                public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                                    // TODO: handle failure
+                                }
+
+                            });
+                        }
+                    });
+                    snackbar.setActionTextColor(Color.YELLOW);
+                    snackbar.show();
+                }
+
+                @Override
+                public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                    // TODO: handle failure
+                }
+
+            });
 
             // remove the item from recycler view
             mAdapter.removeItem(viewHolder.getAdapterPosition());
-
-            // TODO: remove hardcoded string
-            // showing snack bar with Undo option
-            Snackbar snackbar = Snackbar
-                    .make(coordinatorLayout, name + " removed from favorties!", Snackbar.LENGTH_LONG);
-            snackbar.setAction(getString(R.string.undo).toUpperCase(), new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // undo is selected, restore the deleted item
-                    mAdapter.restoreItem(deletedLocation, deletedIndex);
-                }
-            });
-            snackbar.setActionTextColor(Color.YELLOW);
-            snackbar.show();
         }
     }
 
@@ -132,12 +164,13 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
     @Override
     public void onDirectionClick(LocationMarkerModel locationMarkerModel) {
-        Log.i("Directions CLicked : ", "Directions Clicked ");
+        // TODO: call TRIPS API
+        MapsioUtils.getInstance().startNavigation(locationMarkerModel.getLatLng(), FavoritesActivity.this);
     }
 
     @Override
     public void onLocationClick(LocationMarkerModel locationMarkerModel) {
-        Log.i("Locations CLicked : ", "Locations Clicked ");
+        // TODO: send to MAPS
     }
 
 }

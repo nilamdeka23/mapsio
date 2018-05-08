@@ -18,7 +18,7 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:layout_marginRight="@dimen/padd_10"
-            android:src="@mipmap/ic_launcher" />
+            android:src="@mipmap/ic_trash" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -45,14 +45,12 @@
             android:id="@+id/fav_location_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="3"
-            android:background="@android:color/white"
-            android:clickable="true">
+            android:layout_weight="3">
 
             <RelativeLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@android:color/white"
+                android:background="@drawable/marker_desc_bg"
                 android:focusable="true"
                 android:orientation="vertical"
                 android:paddingBottom="@dimen/row_padding_vertical"
@@ -79,7 +77,6 @@
                     android:singleLine="true"
                     android:textColor="@color/title"
                     android:textSize="16dp"
-                    android:text="AAAAAAAAAAAAAAAAAAA"
                     android:textStyle="bold" />
 
                 <TextView
@@ -90,8 +87,7 @@
                     android:layout_marginTop="4dp"
                     android:layout_toRightOf="@+id/location_image"
                     android:ellipsize="end"
-                    android:maxLines="2"
-                    android:text="AAAAAAAAAAAAAAAAAAAA" />
+                    android:maxLines="2" />
 
                 <RatingBar
                     android:id="@+id/location_rating"
@@ -102,7 +98,6 @@
                     android:layout_marginTop="4dp"
                     android:layout_toRightOf="@+id/location_image"
                     android:max="5"
-                    android:rating="4.5"
                     android:scaleX=".4"
                     android:scaleY=".4"
                     android:stepSize="0.5"
@@ -119,7 +114,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@color/light_grey">
+            android:background="@drawable/marker_desc_bg">
 
             <RelativeLayout
                 android:layout_width="match_parent"

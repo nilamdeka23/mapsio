@@ -192,7 +192,7 @@ public class SettingsActivity extends AppCompatActivity implements GoogleApiClie
 
         if(LocationUtils.getInstance().getCurrPlace()!=null){
 
-            MapsioUtils.displayInfoDialog(this, R.string.settings_curr_loc,R.string.curr_loc_alrdy_enabled_msg);
+            MapsioUtils.getInstance().displayInfoDialog(this, R.string.settings_curr_loc,R.string.curr_loc_alrdy_enabled_msg);
 
         }else {
 

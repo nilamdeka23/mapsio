@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -52,7 +51,6 @@ import com.google.android.gms.tasks.Task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import cmpe295.sjsu.edu.mapsio.R;
@@ -248,7 +246,8 @@ public class GoogleMapsActivity extends AppCompatActivity
                     currentPlace.getId(), currentPlace.getAddress().toString(), false);
 
             MapsioService mapsioService = MapsioService.Factory.create(this);
-            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
+//            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
+            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocation(userId, currentLocation);
 
             recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
                 @Override
@@ -402,7 +401,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                startNavigation(locationObj.getLatLng());
+                MapsioUtils.getInstance().startNavigation(locationObj.getLatLng(), GoogleMapsActivity.this);
             }
         });
 
@@ -444,27 +443,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         intent.putExtra("android.speech.extra.LANGUAGE_MODEL", "free_form");
         intent.putExtra("android.speech.extra.PROMPT", "Speak Now");
         this.startActivityForResult(intent, VOICE_SEARCH_CODE);
-    }
-
-    //start navigation from current location to the selected destination using Google Maps
-    private void startNavigation(LatLng destination) {
-
-        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
-
-        if (currentPlace != null) {
-
-            //String uri = String.format(Locale.ENGLISH, "http://maps.google.com/maps?saddr=%f,%f&daddr=%f,%f", currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude, destination.latitude, destination.longitude);
-            String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f", destination.latitude, destination.longitude);
-            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                    Uri.parse(uri));
-            intent.setPackage("com.google.android.apps.maps");
-            startActivity(intent);
-
-        } else {
-
-            MapsioUtils.displayInfoDialog(this, R.string.info_dialog_curr_loc_title,R.string.info_dialog_curr_loc_message);
-        }
-
     }
 
     @Override

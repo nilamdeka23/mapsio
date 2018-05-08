@@ -172,16 +172,8 @@ public class LocationUtils{
         this.googleMap = googleMap;
     }
 
-    public PlaceDetectionClient getPlaceDetectionClient() {
-        return placeDetectionClient;
-    }
-
     public void setPlaceDetectionClient(PlaceDetectionClient placeDetectionClient) {
         this.placeDetectionClient = placeDetectionClient;
-    }
-
-    public ICurrentLocationService getCurrentLocationService() {
-        return currentLocationService;
     }
 
     public void setCurrentLocationService(Context context) {

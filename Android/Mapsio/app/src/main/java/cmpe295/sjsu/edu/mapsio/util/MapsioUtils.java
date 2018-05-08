@@ -2,10 +2,14 @@ package cmpe295.sjsu.edu.mapsio.util;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
+
 import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlacePhotoMetadata;
 import com.google.android.gms.location.places.PlacePhotoMetadataBuffer;
 import com.google.android.gms.location.places.PlacePhotoMetadataResponse;
@@ -15,6 +19,8 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.maps.android.SphericalUtil;
+
+import java.util.Locale;
 
 import cmpe295.sjsu.edu.mapsio.R;
 
@@ -42,6 +48,7 @@ public class MapsioUtils {
     public void getPhotos(String placeId, final IPlacePhoto iPlacePhoto) {
         final Task<PlacePhotoMetadataResponse> photoMetadataResponse = geoDataClient.getPlacePhotos(placeId);
         photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
+
             @Override
             public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
                 if (task.isSuccessful() && task.getResult() != null) {
@@ -78,8 +85,8 @@ public class MapsioUtils {
         return new LatLngBounds(southwestCorner, northeastCorner);
     }
 
-    public static void displayInfoDialog(Context context, int title, int message){
-       AlertDialog.Builder builder;
+    public void displayInfoDialog(Context context, int title, int message){
+        AlertDialog.Builder builder;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
@@ -98,6 +105,25 @@ public class MapsioUtils {
 
                     }
                 }).show();
+    }
+
+    //start navigation from current location to the selected destination using Google Maps
+    public void startNavigation(LatLng destination, Context context) {
+
+        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+        if (currentPlace != null) {
+
+            String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f",
+                    destination.latitude, destination.longitude);
+            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse(uri));
+            intent.setPackage("com.google.android.apps.maps");
+            context.startActivity(intent);
+
+        } else {
+            displayInfoDialog(context, R.string.info_dialog_curr_loc_title, R.string.info_dialog_curr_loc_message);
+        }
+
     }
 
 }
