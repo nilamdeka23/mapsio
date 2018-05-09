@@ -28,4 +28,6 @@
     <string name="curr_loc_enabled_msg">Your current location is now enabled.</string>
     <string name="curr_loc_disabled_msg">Your current location not enabled.</string>
 
+    <string name ="fav_loc_removed_msg"> removed from favorites!</string>
+
 </resources>

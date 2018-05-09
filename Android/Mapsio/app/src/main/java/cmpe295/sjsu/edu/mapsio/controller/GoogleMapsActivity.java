@@ -155,6 +155,10 @@ public class GoogleMapsActivity extends AppCompatActivity
             public void onSearchAction(String currentQuery) {
                 // TODO: should we clear mMap too?
                 googleMap.clear();
+                // clear local cache
+                if(markerMap!=null) {
+                    markerMap.clear();
+                }
                 search(searchText.toString(),GoogleMapsActivity.this);
             }
         });
@@ -327,6 +331,10 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         //clear the google map before marking new places
         googleMap.clear();
+        // clear local cache
+        if(markerMap!=null) {
+            markerMap.clear();
+        }
         //save the place whose name matches the search query
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
@@ -590,6 +598,11 @@ public class GoogleMapsActivity extends AppCompatActivity
                 if (googleMap != null)
                     googleMap.clear();
 
+                // clear local cache
+                //TODO: Nilam check this
+                if(markerMap!=null) {
+                    markerMap.clear();
+                }
                 // Creating a marker
                 Marker marker = googleMap.addMarker(new MarkerOptions()
                         .position(latLng)

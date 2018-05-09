@@ -97,7 +97,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
                     // TODO: remove hardcoded string
                     // showing snack bar with Undo option
                     Snackbar snackbar = Snackbar
-                            .make(coordinatorLayout, name + " removed from favorites!", Snackbar.LENGTH_LONG);
+                            .make(coordinatorLayout, name + R.string.fav_loc_removed_msg, Snackbar.LENGTH_LONG);
                     snackbar.setAction(getString(R.string.undo).toUpperCase(), new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
