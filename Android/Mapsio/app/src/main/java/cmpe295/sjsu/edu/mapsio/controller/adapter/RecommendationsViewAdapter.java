@@ -1,6 +1,7 @@
 package cmpe295.sjsu.edu.mapsio.controller.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,8 @@ import java.util.List;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.util.IPlacePhoto;
+import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 
 public class RecommendationsViewAdapter extends RecyclerView.Adapter<RecommendationsViewAdapter.MyView> {
 
@@ -49,9 +52,15 @@ public class RecommendationsViewAdapter extends RecyclerView.Adapter<Recommendat
 
     @Override
     public void onBindViewHolder(final MyView holder, final int position) {
+        MapsioUtils.getInstance().getPhotos(list.get(position).getPlaceId(), new IPlacePhoto() {
+
+            public void onDownloadCallback(Bitmap bitmap) {
+
+                holder.recommendationImage.setImageBitmap(bitmap);
+            }
+        });
 
         holder.recommendationTitle.setText(list.get(position).getName());
-        //Picasso.with(context).load(list.get(position).getImageURL()).into(holder.recommendationImage);
     }
 
     @Override

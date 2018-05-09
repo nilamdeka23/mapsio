@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -224,6 +225,10 @@ public class GoogleMapsActivity extends AppCompatActivity
                     LocationMarkerModel selectedRecommendation = recommendedLocations.get(recyclerViewItemPosition);
 
                     if (googleMap != null) {
+                        // clear other markers
+                        googleMap.clear();
+                        markerMap.clear();
+
                         // Creating a marker
                         Marker marker = googleMap.addMarker(new MarkerOptions()
                                 .position(selectedRecommendation.getLatLng())
@@ -232,7 +237,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                         markerMap.put(marker.getId(), selectedRecommendation);
 
                         // Animating to the touched position
-                        googleMap.animateCamera(CameraUpdateFactory.newLatLng(selectedRecommendation.getLatLng()));
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedRecommendation.getLatLng(), 13));
                     }
 
                     showMarkerDescLayout(selectedRecommendation);
@@ -263,20 +268,27 @@ public class GoogleMapsActivity extends AppCompatActivity
             LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
                     currentPlace.getId(), currentPlace.getAddress().toString(), false);
 
-//            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
-            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocation(userId, currentLocation);
+            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
+//            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocation(userId, currentLocation);
 
             recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
                 @Override
                 public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
-
+                    // reset if not empty
+                    if (!recommendedLocations.isEmpty()) {
+                        recommendedLocations.clear();
+                    }
                     recommendedLocations.addAll(response.body());
                     recommendationsViewAdapter.notifyDataSetChanged();
-                    recommendationsRecyclerView.setVisibility(View.VISIBLE);
+                    // make visible only if invisible
+                    if (recommendationsRecyclerView.getVisibility() != View.VISIBLE){
+                        recommendationsRecyclerView.setVisibility(View.VISIBLE);
+                    }
                 }
 
                 @Override
                 public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
+                    // TODO: handle failure
                 }
 
             });
@@ -440,6 +452,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     @Override
                     public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                         Log.d("RESPONSE", "RESPONSE + " + response.toString());
+                        Toast.makeText(GoogleMapsActivity.this, "FAV CILCKED", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
