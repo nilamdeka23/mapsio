@@ -25,12 +25,12 @@ public class LocationMarkerModel implements Parcelable {
         this.isPoi = isPoi;
     }
 
-    public LocationMarkerModel(String name, LatLng latLng, String placeId, String address, boolean isFavorite) {
+    public LocationMarkerModel(String name, LatLng latLng, String placeId, String address, float rating) {
         this.name = name;
         this.latLng = new LatLngModel(latLng.latitude, latLng.longitude);
         this.placeId = placeId;
         this.address = address;
-        this.isFavorite = isFavorite;
+        this.rating = rating;
     }
 
     protected LocationMarkerModel(Parcel in) {

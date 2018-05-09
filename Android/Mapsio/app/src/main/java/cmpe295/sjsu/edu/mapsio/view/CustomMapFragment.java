@@ -20,7 +20,7 @@ public class CustomMapFragment extends SupportMapFragment {
         // convert dp to px
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float logicalDensity = displayMetrics.density;
-        int rightMargin = (int) Math.ceil(20 * logicalDensity);
+        int rightMargin = (int) Math.ceil(26 * logicalDensity);
         int bottomMargin = (int) Math.ceil(130 * logicalDensity);
 
         // add layout constaints

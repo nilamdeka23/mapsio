@@ -120,7 +120,7 @@ public class MapsioUtils {
         if (currentPlace != null) {
             // prepare request
             LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(),
-                    currentPlace.getLatLng(), currentPlace.getId(), currentPlace.getAddress().toString(), false);
+                    currentPlace.getLatLng(), currentPlace.getId(), currentPlace.getAddress().toString(), currentPlace.getRating());
             TripRequestModel tripRequestModel = new TripRequestModel(currentLocation, destinationLocation, context);
 
             MapsioService mapsioService = MapsioService.Factory.create(context);

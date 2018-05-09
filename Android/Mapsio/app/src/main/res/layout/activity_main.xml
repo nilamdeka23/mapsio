@@ -41,7 +41,6 @@
             app:floatingSearch_suggestionsListAnimDuration="250"
             app:floatingSearch_viewTextColor="@android:color/white" />
 
-
         <include
             android:id="@+id/marker_desc_layout"
             layout="@layout/marker_desc"

@@ -4,33 +4,16 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_favorites"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@mipmap/ic_fav"
             android:title="Favorites" />
         <item
             android:id="@+id/nav_settings"
-            android:icon="@mipmap/ic_launcher"
+            android:icon="@mipmap/ic_settings"
             android:title="Settings" />
         <item
-            android:id="@+id/nav_slideshow"
-            android:icon="@mipmap/ic_launcher"
-            android:title="Help" />
-        <item
             android:id="@+id/nav_about_us"
-            android:icon="@mipmap/ic_launcher"
-            android:title="App Info" />
+            android:icon="@mipmap/ic_about_us"
+            android:title="About us" />
     </group>
-
-    <!--<item android:title="Communicate">
-        <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
-        </menu>
-    </item>-->
 
 </menu>

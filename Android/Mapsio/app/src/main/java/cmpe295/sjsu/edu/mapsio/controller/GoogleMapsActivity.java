@@ -116,7 +116,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         LocationUtils.getInstance().setPlaceDetectionClient(placeDetectionClient);
         LocationUtils.getInstance().setCurrentLocationService(this);
 
-        // call back when the map is ready. this is to align the mylocation button
+        // init map
         CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -265,7 +265,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (currentPlace != null) {
             // init request
             LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
-                    currentPlace.getId(), currentPlace.getAddress().toString(), false);
+                    currentPlace.getId(), currentPlace.getAddress().toString(), currentPlace.getRating());
 
             Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
 //            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocation(userId, currentLocation);
@@ -274,14 +274,17 @@ public class GoogleMapsActivity extends AppCompatActivity
                 @Override
                 public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                     // reset if not empty
-                    if (!recommendedLocations.isEmpty()) {
+                    if (!recommendedLocations.isEmpty())
                         recommendedLocations.clear();
-                    }
-                    recommendedLocations.addAll(response.body());
-                    recommendationsViewAdapter.notifyDataSetChanged();
-                    // make visible only if invisible
-                    if (recommendationsRecyclerView.getVisibility() != View.VISIBLE) {
-                        recommendationsRecyclerView.setVisibility(View.VISIBLE);
+                    // validate response
+                    if (response.body() != null) {
+                        recommendedLocations.addAll(response.body());
+                        recommendationsViewAdapter.notifyDataSetChanged();
+                        // make visible only if invisible
+                        if (recommendationsRecyclerView.getVisibility() == View.INVISIBLE) {
+                            recommendationsRecyclerView.setVisibility(View.VISIBLE);
+                            markerDescLayout.setVisibility(View.INVISIBLE);
+                        }
                     }
                 }
 
@@ -304,15 +307,15 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         Task<AutocompletePredictionBufferResponse> results;
         Place currentPlace = LocationUtils.getInstance().getCurrPlace();
-        //if the current location is available
+        // if the current location is available
         if (currentPlace != null) {
-            //current location is taken as the center
+            // current location is taken as the center
             LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
             LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
 
             results = geoDataClient.getAutocompletePredictions(searchQuery, latlngBounds, null);
         } else {
-            //if the current location is not available, get all the predictions
+            // if the current location is not available, get all the predictions
             results = geoDataClient.getAutocompletePredictions(searchQuery, null, null);
         }
 
@@ -380,7 +383,8 @@ public class GoogleMapsActivity extends AppCompatActivity
             if (googleMap != null) {
                 Marker marker = googleMap.addMarker(markerOptions);
                 markerMap.put(marker.getId(), new LocationMarkerModel(tempPlace.getName().toString(),
-                        tempPlace.getLatLng(), tempPlace.getId(), false));
+                        tempPlace.getLatLng(), tempPlace.getId(),  tempPlace.getAddress().toString(), tempPlace.getRating()));
+
             }
 
             response.release();
@@ -510,19 +514,14 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             Intent intent = new Intent(this, FavoritesActivity.class);
             startActivity(intent);
-            //finish();
         } else if (id == R.id.nav_settings) {
 
             Intent intent = new Intent(this, SettingsActivity.class);
             startActivity(intent);
-
-        } else if (id == R.id.nav_slideshow) {
-
         } else if (id == R.id.nav_about_us) {
 
             Intent intent = new Intent(this, AboutUsActivity.class);
             startActivity(intent);
-            //finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -549,7 +548,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                         PlaceBufferResponse response = task.getResult();
                         Place place = response.get(0).freeze();
                         LocationMarkerModel locationObj = new LocationMarkerModel(place.getName().toString(), place.getLatLng(),
-                                place.getId(), place.getAddress().toString(), false);
+                                place.getId(), place.getAddress().toString(), place.getRating());
 
                         showMarkerDescLayout(locationObj);
 
@@ -590,7 +589,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     PlaceBufferResponse response = task.getResult();
                     Place place = response.get(0).freeze();
                     LocationMarkerModel locationObj = new LocationMarkerModel(place.getName().toString(), place.getLatLng(),
-                            place.getId(), place.getAddress().toString(), false);
+                            place.getId(), place.getAddress().toString(), place.getRating());
 
                     showMarkerDescLayout(locationObj);
 

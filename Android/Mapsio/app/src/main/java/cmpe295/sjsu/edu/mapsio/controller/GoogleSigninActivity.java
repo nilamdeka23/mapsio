@@ -164,8 +164,8 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
                 @Override
                 public void onFailure(Call<AuthRequestModel> call, Throwable t) {
                     // TODO: handle failure better(hint: google best practice)
-                    Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Fail " +
-                            t.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(GoogleSigninActivity.this, "Server Error: " +
+                            t.toString() + ". Please try again later", Toast.LENGTH_SHORT).show();
                 }
 
             });
