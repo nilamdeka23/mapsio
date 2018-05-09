@@ -14,6 +14,7 @@ import com.google.android.gms.location.places.PlaceDetectionClient;
 import com.google.android.gms.location.places.PlaceFilter;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBufferResponse;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -103,9 +104,8 @@ public class LocationUtils {
                             //Display the current location
                             displayMyLocationButton();
 
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currPlace.getLatLng(),13));
                             likelyPlaces.release();
-                            Log.d("CURRENT LOCATION", "Current location found.");
-                            Log.d(" Current Place Check", "Current location populated.");
 
                         } else {
                             Log.d("CURRENT LOCATION", "Current location is null. Using defaults.");
