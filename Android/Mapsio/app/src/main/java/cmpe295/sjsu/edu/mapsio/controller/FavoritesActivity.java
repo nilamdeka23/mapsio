@@ -1,6 +1,7 @@
 package cmpe295.sjsu.edu.mapsio.controller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -62,6 +63,13 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
             @Override
             public void onClick(View view, int position) {
 //                final LocationMarkerModel favoriteLocation = favoriteLocations.get(position);
+                Intent intent = new Intent(FavoritesActivity.this, GoogleMapsActivity.class);
+                intent.putExtra("locationData",favoriteLocations.get(position) );
+
+                //this is invoked so that the current favorites activity is destroyed and when on GoogleMapsActivity, favorites activty doesn't appear on bac
+                finish();
+                startActivity(intent);
+               // finish();
             }
 
             @Override

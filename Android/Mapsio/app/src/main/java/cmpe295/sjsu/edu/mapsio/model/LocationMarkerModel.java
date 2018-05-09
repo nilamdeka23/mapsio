@@ -1,8 +1,11 @@
 package cmpe295.sjsu.edu.mapsio.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.android.gms.maps.model.LatLng;
 
-public class LocationMarkerModel {
+public class LocationMarkerModel implements Parcelable {
 
     private String address;
     private boolean isFavorite = false;
@@ -29,6 +32,44 @@ public class LocationMarkerModel {
         this.address = address;
         this.isFavorite = isFavorite;
     }
+
+    protected LocationMarkerModel(Parcel in) {
+        address = in.readString();
+        isFavorite = Boolean.valueOf(in.readString());
+        latLng = in.readParcelable(LatLngModel.class.getClassLoader());
+        name = in.readString();
+        placeId = in.readString();
+        rating = in.readFloat();
+        isPoi = Boolean.valueOf(in.readString());
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(address);
+        dest.writeString(Boolean.toString(isFavorite));
+        dest.writeParcelable(latLng,flags);
+        dest.writeString(name);
+        dest.writeString(placeId);
+        dest.writeFloat(rating);
+        dest.writeString(Boolean.toString(isPoi));
+
+    }
+    public static final Creator<LocationMarkerModel> CREATOR = new Creator<LocationMarkerModel>() {
+        @Override
+        public LocationMarkerModel createFromParcel(Parcel in) {
+            return new LocationMarkerModel(in);
+        }
+
+        @Override
+        public LocationMarkerModel[] newArray(int size) {
+            return new LocationMarkerModel[size];
+        }
+    };
 
     public String getName() {
         return name;

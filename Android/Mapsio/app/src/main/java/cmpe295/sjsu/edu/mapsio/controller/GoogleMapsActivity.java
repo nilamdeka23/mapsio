@@ -641,6 +641,34 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     @Override
+    public void onNewIntent(Intent intent){
+        super.onNewIntent(intent);
+
+        LocationMarkerModel clickedFavLocation = intent.getParcelableExtra("locationData");
+
+        if (googleMap != null)
+            googleMap.clear();
+
+        // clear local cache
+        //TODO: Nilam check this
+        if(markerMap!=null) {
+            markerMap.clear();
+        }
+        // Creating a marker
+        Marker marker = googleMap.addMarker(new MarkerOptions()
+                .position(clickedFavLocation.getLatLng())
+                .title(clickedFavLocation.getName()));
+        // add to local cache
+        markerMap.put(marker.getId(), clickedFavLocation);
+
+        showMarkerDescLayout(clickedFavLocation);
+        // Animating to the touched position
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clickedFavLocation.getLatLng(), 14));
+
+    }
+
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == VOICE_SEARCH_CODE && resultCode == RESULT_OK) {
             ArrayList<String> matches = data.getStringArrayListExtra("android.speech.extra.RESULTS");
