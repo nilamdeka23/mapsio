@@ -344,6 +344,16 @@ public class GoogleMapsActivity extends AppCompatActivity
         //clear the google map before marking new places
         if (googleMap != null)
             googleMap.clear();
+
+        if (markerDescLayout.getVisibility() == View.VISIBLE) {
+            // hide marker layout
+            markerDescLayout.setVisibility(View.INVISIBLE);
+            if(recommendationsRecyclerView!=null) {
+                // render recommendations layout visible
+                recommendationsRecyclerView.setVisibility(View.VISIBLE);
+            }
+        }
+
         // clear local cache
         markerMap.clear();
 
