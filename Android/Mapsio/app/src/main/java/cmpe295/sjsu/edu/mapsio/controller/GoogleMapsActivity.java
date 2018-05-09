@@ -86,12 +86,12 @@ public class GoogleMapsActivity extends AppCompatActivity
     private ArrayList<LocationMarkerModel> recommendedLocations = new ArrayList<>();
     private Map<String, LocationMarkerModel> markerMap;
 
-    private View childView;
-    private View markerDescLayout;
+    private View childView, markerDescLayout;
     private RecyclerView recommendationsRecyclerView;
     private RecommendationsViewAdapter recommendationsViewAdapter;
     private FloatingSearchView searchView;
     private String userId;
+    private MapsioService mapsioService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +104,8 @@ public class GoogleMapsActivity extends AppCompatActivity
         // init toolbar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        // init API service
+        mapsioService = MapsioService.Factory.create(this);
 
         geoDataClient = Places.getGeoDataClient(this, null);
         MapsioUtils.getInstance().setGeoDataClient(geoDataClient);
@@ -217,6 +219,18 @@ public class GoogleMapsActivity extends AppCompatActivity
                     int recyclerViewItemPosition = Recyclerview.getChildAdapterPosition(childView);
                     LocationMarkerModel selectedRecommendation = recommendedLocations.get(recyclerViewItemPosition);
 
+                    if (googleMap != null) {
+                        // Creating a marker
+                        Marker marker = googleMap.addMarker(new MarkerOptions()
+                                .position(selectedRecommendation.getLatLng())
+                                .title(selectedRecommendation.getName()));
+                        // add to local cache
+                        markerMap.put(marker.getId(), selectedRecommendation);
+
+                        // Animating to the touched position
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLng(selectedRecommendation.getLatLng()));
+                    }
+
                     showMarkerDescLayout(selectedRecommendation);
                 }
 
@@ -245,7 +259,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(), currentPlace.getLatLng(),
                     currentPlace.getId(), currentPlace.getAddress().toString(), false);
 
-            MapsioService mapsioService = MapsioService.Factory.create(this);
 //            Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocations(userId, currentLocation);
             Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getRecommendedLocation(userId, currentLocation);
 
@@ -404,7 +417,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                MapsioUtils.getInstance().startNavigation(locationObj.getLatLng(), GoogleMapsActivity.this);
+                MapsioUtils.getInstance().startNavigation(locationObj, userId, GoogleMapsActivity.this);
             }
         });
 
@@ -413,17 +426,16 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 // init request
-                MapsioService mapsioService = MapsioService.Factory.create(GoogleMapsActivity.this);
-                Call<LocationMarkerModel> addFavoriteCall = mapsioService.addFavorite(userId, locationObj);
+                Call<List<LocationMarkerModel>> addFavoriteCall = mapsioService.addFavorite(userId, locationObj);
 
-                addFavoriteCall.enqueue(new Callback<LocationMarkerModel>() {
+                addFavoriteCall.enqueue(new Callback<List<LocationMarkerModel>>() {
                     @Override
-                    public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                    public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                         Log.d("RESPONSE", "RESPONSE + " + response.toString());
                     }
 
                     @Override
-                    public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                    public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
                         Log.d("FAILURE", "FAILURE + " + t.toString());
                     }
 
@@ -566,7 +578,6 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     @Override
     public void onMapLongClick(final LatLng latLng) {
-        MapsioService mapsioService = MapsioService.Factory.create(this);
         Call<LocationMarkerModel> placeDetailRequestCall = mapsioService.getPlaceDetail(new LatLngModel(latLng.latitude,
                 latLng.longitude));
 

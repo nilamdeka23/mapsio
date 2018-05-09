@@ -53,6 +53,8 @@ dependencies {
     //https://developers.google.com/maps/documentation/android-api/utility/
     //utility to calculate lallng bounds from current location
     compile 'com.google.maps.android:android-maps-utils:0.5+'
+    //for date-time
+    compile 'com.jakewharton.threetenabp:threetenabp:1.1.0'
 }
 
 apply plugin: 'com.google.gms.google-services'
