@@ -116,7 +116,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         LocationUtils.getInstance().setPlaceDetectionClient(placeDetectionClient);
         LocationUtils.getInstance().setCurrentLocationService(this);
 
-        // init map
+        // call back when the map is ready. this is to align the mylocation button
         CustomMapFragment mapFragment = (CustomMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -304,14 +304,15 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         Task<AutocompletePredictionBufferResponse> results;
         Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+        //if the current location is available
         if (currentPlace != null) {
-            //this is just taking the center
+            //current location is taken as the center
             LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
             LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
 
             results = geoDataClient.getAutocompletePredictions(searchQuery, latlngBounds, null);
         } else {
-
+            //if the current location is not available, get all the predictions
             results = geoDataClient.getAutocompletePredictions(searchQuery, null, null);
         }
 
@@ -658,11 +659,34 @@ public class GoogleMapsActivity extends AppCompatActivity
         googleMap.setOnMarkerClickListener(this);
         googleMap.setOnMapLongClickListener(this);
         googleMap.setOnMapClickListener(this);
+        //if the permission is not granted, then get the permission and the current location
         if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
             // Prompt the user for permission.
             LocationUtils.getInstance().getLocationPermission(this);
+        }else{
+            //get the device location. this also takes care of displaying the button
+            LocationUtils.getInstance().getDeviceLocation();
         }
-        LocationUtils.getInstance().enableMyLocation();
+        //add click listener to myLocationButton - needs to be done only 1 time when the map is loaded
+        LocationUtils.getInstance().addClickListenerToMyLocationButton();
+
+    }
+
+    @Override
+    public void onResume() {
+
+        super.onResume();
+        if(LocationUtils.getInstance().getGoogleMap()!=null){
+
+            if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+                // Prompt the user for permission.
+                LocationUtils.getInstance().getLocationPermission(this);
+            }else{
+                //get the device location. this also takes care of displaying the button
+                LocationUtils.getInstance().getDeviceLocation();
+            }
+        }
+
     }
 
     @Override

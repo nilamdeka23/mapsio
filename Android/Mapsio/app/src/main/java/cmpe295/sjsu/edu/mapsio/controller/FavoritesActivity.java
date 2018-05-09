@@ -24,6 +24,7 @@ import cmpe295.sjsu.edu.mapsio.controller.adapter.FavoritesListAdapter;
 import cmpe295.sjsu.edu.mapsio.controller.listener.RecyclerTouchListener;
 import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import cmpe295.sjsu.edu.mapsio.util.LocationUtils;
 import cmpe295.sjsu.edu.mapsio.util.MapsioUtils;
 import cmpe295.sjsu.edu.mapsio.util.RecyclerItemTouchHelper;
 import retrofit2.Call;
@@ -134,6 +135,21 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
             // remove the item from recycler view
             mAdapter.removeItem(viewHolder.getAdapterPosition());
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        if(LocationUtils.getInstance().getGoogleMap()!=null){
+
+            if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+                // Prompt the user for permission.
+                LocationUtils.getInstance().getLocationPermission(this);
+            }else{
+                //get the device location. this also takes care of displaying the button
+                LocationUtils.getInstance().getDeviceLocation();
+            }
         }
     }
 
