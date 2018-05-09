@@ -159,7 +159,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                 // clear local cache
                 markerMap.clear();
 
-                search(searchText.toString(),GoogleMapsActivity.this);
+                search(searchText.toString(), GoogleMapsActivity.this);
             }
         });
 
@@ -280,7 +280,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     recommendedLocations.addAll(response.body());
                     recommendationsViewAdapter.notifyDataSetChanged();
                     // make visible only if invisible
-                    if (recommendationsRecyclerView.getVisibility() != View.VISIBLE){
+                    if (recommendationsRecyclerView.getVisibility() != View.VISIBLE) {
                         recommendationsRecyclerView.setVisibility(View.VISIBLE);
                     }
                 }
@@ -357,7 +357,8 @@ public class GoogleMapsActivity extends AppCompatActivity
         for (int i = 0; i < placeIdList.size(); i++) {
             Task<PlaceBufferResponse> result = geoDataClient.getPlaceById(placeIdList.get(i));
 
-            while (!result.isComplete()) {} // hack to make things synchronous
+            while (!result.isComplete()) {
+            } // hack to make things synchronous
 
             PlaceBufferResponse response = result.getResult();
             Place tempPlace = response.get(0);
@@ -660,15 +661,15 @@ public class GoogleMapsActivity extends AppCompatActivity
         googleMap.setOnMapLongClickListener(this);
         googleMap.setOnMapClickListener(this);
         //if the permission is not granted, then get the permission and the current location
-        if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+        if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
             // Prompt the user for permission.
             LocationUtils.getInstance().getLocationPermission(this);
-        }else{
+        } else {
             //get the device location. this also takes care of displaying the button
             LocationUtils.getInstance().getDeviceLocation();
         }
         //add click listener to myLocationButton - needs to be done only 1 time when the map is loaded
-        LocationUtils.getInstance().addClickListenerToMyLocationButton();
+        LocationUtils.getInstance().addBehaviorToMyLocationButton();
 
     }
 
@@ -676,12 +677,12 @@ public class GoogleMapsActivity extends AppCompatActivity
     public void onResume() {
 
         super.onResume();
-        if(LocationUtils.getInstance().getGoogleMap()!=null){
+        if (LocationUtils.getInstance().getGoogleMap() != null) {
 
-            if(!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+            if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
                 // Prompt the user for permission.
                 LocationUtils.getInstance().getLocationPermission(this);
-            }else{
+            } else {
                 //get the device location. this also takes care of displaying the button
                 LocationUtils.getInstance().getDeviceLocation();
             }
@@ -690,7 +691,7 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onNewIntent(Intent intent){
+    public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
         LocationMarkerModel clickedFavLocation = intent.getParcelableExtra("location_data");
@@ -722,7 +723,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             if (searchView != null) {
 
                 searchView.setSearchText(matches.get(0));
-                search(matches.get(0),GoogleMapsActivity.this);
+                search(matches.get(0), GoogleMapsActivity.this);
             }
         }
         //super.onActivityResult(requestCode, resultCode, data);

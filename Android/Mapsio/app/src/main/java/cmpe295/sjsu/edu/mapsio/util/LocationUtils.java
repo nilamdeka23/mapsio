@@ -19,7 +19,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 
-public class LocationUtils{
+public class LocationUtils {
 
     private static LocationUtils instance = null;
 
@@ -75,7 +75,7 @@ public class LocationUtils{
          */
         try {
 
-            if (mLocationPermissionGranted && placeDetectionClient!=null) {
+            if (mLocationPermissionGranted && placeDetectionClient != null) {
 
                 Task<PlaceLikelihoodBufferResponse> locationResult = placeDetectionClient.getCurrentPlace(new PlaceFilter());
 
@@ -124,7 +124,7 @@ public class LocationUtils{
     }
 
     @SuppressLint("MissingPermission")
-    public void addClickListenerToMyLocationButton() {
+    public void addBehaviorToMyLocationButton() {
         if (googleMap != null) {
 
             //update current location when the MyLocationButton is clicker
@@ -134,13 +134,13 @@ public class LocationUtils{
                     Log.d("My Location Button :", "clicked");
                     Log.d("My Location Button :", "If permission granted :" + mLocationPermissionGranted);
                     // Get the current location of the device and set the position of the map.
-                    if(mLocationPermissionGranted) {
+                    if (mLocationPermissionGranted) {
                         //here we need to fetch the current location in case it has changed. Also as we don't have any callback, we update the current location
                         //at this hook
                         LocationUtils.getInstance().getDeviceLocation();
                         googleMap.setMyLocationEnabled(true);
                         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-                    }else{
+                    } else {
                         googleMap.setMyLocationEnabled(false);
                         googleMap.getUiSettings().setMyLocationButtonEnabled(true);
                     }
@@ -153,19 +153,18 @@ public class LocationUtils{
 
     //This will just display the myLocation button based on permission
     @SuppressLint("MissingPermission")
-    public void displayMyLocationButton(){
+    public void displayMyLocationButton() {
 
-        if(mLocationPermissionGranted) {
+        if (mLocationPermissionGranted) {
 
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
-        }else{
+        } else {
             googleMap.setMyLocationEnabled(false);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
 
     }
-
 
 
     /* GETTERS AND SETTERS */

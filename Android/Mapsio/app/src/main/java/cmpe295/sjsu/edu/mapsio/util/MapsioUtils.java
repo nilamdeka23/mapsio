@@ -91,7 +91,7 @@ public class MapsioUtils {
         return new LatLngBounds(southwestCorner, northeastCorner);
     }
 
-    public void displayInfoDialog(Context context, int title, int message){
+    public void displayInfoDialog(Context context, int title, int message) {
         AlertDialog.Builder builder;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
