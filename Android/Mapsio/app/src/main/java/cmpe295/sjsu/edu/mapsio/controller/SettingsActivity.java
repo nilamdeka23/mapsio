@@ -115,6 +115,7 @@ public class SettingsActivity extends AppCompatActivity implements GoogleApiClie
                                     editor.apply();
 
                                     Intent intent = new Intent(SettingsActivity.this, GoogleSigninActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(intent);
                                     finish();
                                 } else {
@@ -164,6 +165,7 @@ public class SettingsActivity extends AppCompatActivity implements GoogleApiClie
                                     editor.apply();
 
                                     Intent intent = new Intent(SettingsActivity.this, GoogleSigninActivity.class);
+                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(intent);
                                     finish();
 

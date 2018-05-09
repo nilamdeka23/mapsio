@@ -621,22 +621,24 @@ public class GoogleMapsActivity extends AppCompatActivity
             @Override
             public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
 
-                LocationMarkerModel dropPin = response.body();
-                // Clears the previously touched position
-                if (googleMap != null)
-                    googleMap.clear();
-                // clear local cache
-                markerMap.clear();
+                if (response.body() != null) {
+                    LocationMarkerModel dropPin = response.body();
+                    // Clears the previously touched position
+                    if (googleMap != null)
+                        googleMap.clear();
+                    // clear local cache
+                    markerMap.clear();
 
-                // Creating a marker
-                Marker marker = googleMap.addMarker(new MarkerOptions()
-                        .position(latLng)
-                        .title(dropPin.getName()));
-                // add to local cache
-                markerMap.put(marker.getId(), dropPin);
+                    // Creating a marker
+                    Marker marker = googleMap.addMarker(new MarkerOptions()
+                            .position(latLng)
+                            .title(dropPin.getName()));
+                    // add to local cache
+                    markerMap.put(marker.getId(), dropPin);
 
-                // Animating to the touched position
-                googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                    // Animating to the touched position
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                }
             }
 
             @Override

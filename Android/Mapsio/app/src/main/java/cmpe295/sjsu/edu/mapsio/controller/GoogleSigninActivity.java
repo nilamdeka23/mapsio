@@ -42,6 +42,18 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (isSignedIn()) {
+
+            startActivity(new Intent(GoogleSigninActivity.this, GoogleMapsActivity.class));
+            finish();
+        } else {
+
+            init();
+        }
+    }
+
+    private void init() {
         setContentView(R.layout.activity_google_sign_in);
         //ID, email address and basic profile are included in DEFAULT_SING_IN.
         String serverClientId = getString(R.string.web_client_id);
@@ -194,6 +206,20 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.hide();
         }
+    }
+
+    private Boolean isSignedIn() {
+        boolean flag = false;
+
+        SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("user_id", "");
+
+        if (!userId.isEmpty()) {
+
+            flag = true;
+        }
+
+        return flag;
     }
 
     @Override

@@ -150,7 +150,6 @@ public class LocationUtils {
         }
     }
 
-
     //This will just display the myLocation button based on permission
     @SuppressLint("MissingPermission")
     public void displayMyLocationButton() {
@@ -160,12 +159,12 @@ public class LocationUtils {
             googleMap.setMyLocationEnabled(true);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         } else {
+
             googleMap.setMyLocationEnabled(false);
             googleMap.getUiSettings().setMyLocationButtonEnabled(true);
         }
 
     }
-
 
     /* GETTERS AND SETTERS */
     public boolean ismLocationPermissionGranted() {

@@ -164,8 +164,12 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
             @Override
             public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                 // TODO: show loading indicator
-                favoriteLocations.addAll(response.body());
-                mAdapter.notifyDataSetChanged();
+                // validate response
+                if (response.body() != null) {
+
+                    favoriteLocations.addAll(response.body());
+                    mAdapter.notifyDataSetChanged();
+                }
             }
 
             @Override
