@@ -64,13 +64,6 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
             @Override
             public void onClick(View view, int position) {
 //                final LocationMarkerModel favoriteLocation = favoriteLocations.get(position);
-                Intent intent = new Intent(FavoritesActivity.this, GoogleMapsActivity.class);
-                intent.putExtra("locationData",favoriteLocations.get(position) );
-
-                //this is invoked so that the current favorites activity is destroyed and when on GoogleMapsActivity, favorites activty doesn't appear on bac
-                finish();
-                startActivity(intent);
-               // finish();
             }
 
             @Override
@@ -176,7 +169,12 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
     @Override
     public void onLocationClick(LocationMarkerModel locationMarkerModel) {
-        // TODO: send to MAPS
+        Intent intent = new Intent(FavoritesActivity.this, GoogleMapsActivity.class);
+        intent.putExtra("location_data", locationMarkerModel);
+        //this is invoked so that the current favorites activity is destroyed and when on GoogleMapsActivity,
+        // favorites activty doesn't appear on bac
+        finish();
+        startActivity(intent);
     }
 
 }

@@ -48,7 +48,7 @@
             android:layout_weight="3">
 
             <RelativeLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/marker_desc_bg"
                 android:focusable="true"
@@ -64,6 +64,7 @@
                     android:layout_width="64dp"
                     android:layout_height="96dp"
                     android:layout_alignParentLeft="true"
+                    android:layout_marginLeft="2dp"
                     android:layout_marginRight="@dimen/activity_padding_horizontal"
                     android:scaleType="centerCrop"
                     android:src="@mipmap/ic_launcher" />
@@ -71,9 +72,9 @@
                 <TextView
                     android:id="@+id/location_name"
                     android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_toRightOf="@+id/location_image"
                     android:ellipsize="end"
-                    android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:textColor="@color/title"
                     android:textSize="16dp"
@@ -113,13 +114,12 @@
             android:id="@+id/fav_direction_layout"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/marker_desc_bg">
+            android:layout_weight="1">
 
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:focusable="true">
+                android:background="@drawable/marker_desc_bg">
 
                 <ImageView
                     android:layout_width="48dp"

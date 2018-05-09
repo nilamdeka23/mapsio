@@ -154,12 +154,11 @@ public class GoogleMapsActivity extends AppCompatActivity
 
             @Override
             public void onSearchAction(String currentQuery) {
-                // TODO: should we clear mMap too?
-                googleMap.clear();
+                if (googleMap != null)
+                    googleMap.clear();
                 // clear local cache
-                if(markerMap!=null) {
-                    markerMap.clear();
-                }
+                markerMap.clear();
+
                 search(searchText.toString(),GoogleMapsActivity.this);
             }
         });
@@ -225,7 +224,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     LocationMarkerModel selectedRecommendation = recommendedLocations.get(recyclerViewItemPosition);
 
                     if (googleMap != null) {
-                        // clear other markers
+                        // clear old markers
                         googleMap.clear();
                         markerMap.clear();
 
@@ -342,11 +341,11 @@ public class GoogleMapsActivity extends AppCompatActivity
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
 
         //clear the google map before marking new places
-        googleMap.clear();
+        if (googleMap != null)
+            googleMap.clear();
         // clear local cache
-        if(markerMap!=null) {
-            markerMap.clear();
-        }
+        markerMap.clear();
+
         //save the place whose name matches the search query
         Place mostLikelyPlaceByName = null;
         //save the first place in the list
@@ -488,6 +487,11 @@ public class GoogleMapsActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
 
             drawer.closeDrawer(GravityCompat.START);
+        } else if (markerDescLayout.getVisibility() == View.VISIBLE) {
+            // hide marker layout
+            markerDescLayout.setVisibility(View.INVISIBLE);
+            // render recommendations layout visible
+            recommendationsRecyclerView.setVisibility(View.VISIBLE);
         } else {
 
             super.onBackPressed();
@@ -610,12 +614,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                 // Clears the previously touched position
                 if (googleMap != null)
                     googleMap.clear();
-
                 // clear local cache
-                //TODO: Nilam check this
-                if(markerMap!=null) {
-                    markerMap.clear();
-                }
+                markerMap.clear();
+
                 // Creating a marker
                 Marker marker = googleMap.addMarker(new MarkerOptions()
                         .position(latLng)
@@ -668,16 +669,13 @@ public class GoogleMapsActivity extends AppCompatActivity
     public void onNewIntent(Intent intent){
         super.onNewIntent(intent);
 
-        LocationMarkerModel clickedFavLocation = intent.getParcelableExtra("locationData");
+        LocationMarkerModel clickedFavLocation = intent.getParcelableExtra("location_data");
 
         if (googleMap != null)
             googleMap.clear();
-
         // clear local cache
-        //TODO: Nilam check this
-        if(markerMap!=null) {
-            markerMap.clear();
-        }
+        markerMap.clear();
+
         // Creating a marker
         Marker marker = googleMap.addMarker(new MarkerOptions()
                 .position(clickedFavLocation.getLatLng())
