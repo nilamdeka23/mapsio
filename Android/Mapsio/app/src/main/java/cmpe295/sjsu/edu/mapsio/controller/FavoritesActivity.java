@@ -51,6 +51,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.fav_coordinator_layout);
         mAdapter = new FavoritesListAdapter(this, favoriteLocations);
+        mapsioService = MapsioService.Factory.create(this);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.fav_recycler_view);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -96,13 +97,12 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
             final LocationMarkerModel deletedLocation = favoriteLocations.get(viewHolder.getAdapterPosition());
             final int deletedIndex = viewHolder.getAdapterPosition();
             // delete request
-            MapsioService mapsioService = MapsioService.Factory.create(this);
-            Call<LocationMarkerModel> deleteFavoriteCall = mapsioService.deleteFavorite(userId, name);
+            Call<List<LocationMarkerModel>> deleteFavoriteCall = mapsioService.deleteFavorite(userId, name);
 
-            deleteFavoriteCall.enqueue(new Callback<LocationMarkerModel>() {
+            deleteFavoriteCall.enqueue(new Callback<List<LocationMarkerModel>>() {
                 @Override
-                public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
-
+                public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
+                    // TODO: remove hardcoded string
                     // showing snack bar with Undo option
                     Snackbar snackbar = Snackbar
                             .make(coordinatorLayout, name + R.string.fav_loc_removed_msg, Snackbar.LENGTH_LONG);
@@ -110,19 +110,18 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
                         @Override
                         public void onClick(View view) {
                             // add request
-                            MapsioService mapsioService = MapsioService.Factory.create(FavoritesActivity.this);
-                            Call<LocationMarkerModel> addFavoriteCall = mapsioService.addFavorite(userId, deletedLocation);
+                            Call<List<LocationMarkerModel>> addFavoriteCall = mapsioService.addFavorite(userId, deletedLocation);
 
-                            addFavoriteCall.enqueue(new Callback<LocationMarkerModel>() {
+                            addFavoriteCall.enqueue(new Callback<List<LocationMarkerModel>>() {
 
                                 @Override
-                                public void onResponse(Call<LocationMarkerModel> call, Response<LocationMarkerModel> response) {
+                                public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                                     // undo is selected, restore the deleted item
                                     mAdapter.restoreItem(deletedLocation, deletedIndex);
                                 }
 
                                 @Override
-                                public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                                public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
                                     // TODO: handle failure
                                 }
 
@@ -134,7 +133,7 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
                 }
 
                 @Override
-                public void onFailure(Call<LocationMarkerModel> call, Throwable t) {
+                public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
                     // TODO: handle failure
                 }
 
@@ -150,7 +149,6 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("user_id","");
 
-        mapsioService = MapsioService.Factory.create(this);
         Call<List<LocationMarkerModel>> recommendedLocationsCall = mapsioService.getFavorites(userId);
 
         recommendedLocationsCall.enqueue(new Callback<List<LocationMarkerModel>>() {
@@ -172,8 +170,8 @@ public class FavoritesActivity extends AppCompatActivity implements RecyclerItem
 
     @Override
     public void onDirectionClick(LocationMarkerModel locationMarkerModel) {
-        // TODO: call TRIPS API
-        MapsioUtils.getInstance().startNavigation(locationMarkerModel.getLatLng(), FavoritesActivity.this);
+
+        MapsioUtils.getInstance().startNavigation(locationMarkerModel, userId, FavoritesActivity.this);
     }
 
     @Override

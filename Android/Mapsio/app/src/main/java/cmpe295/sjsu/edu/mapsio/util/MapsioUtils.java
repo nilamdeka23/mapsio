@@ -23,6 +23,12 @@ import com.google.maps.android.SphericalUtil;
 import java.util.Locale;
 
 import cmpe295.sjsu.edu.mapsio.R;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.model.TripRequestModel;
+import cmpe295.sjsu.edu.mapsio.service.MapsioService;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MapsioUtils {
 
@@ -108,19 +114,39 @@ public class MapsioUtils {
     }
 
     //start navigation from current location to the selected destination using Google Maps
-    public void startNavigation(LatLng destination, Context context) {
+    public void startNavigation(final LocationMarkerModel destinationLocation, String userId, final Context context) {
 
         Place currentPlace = LocationUtils.getInstance().getCurrPlace();
         if (currentPlace != null) {
+            // prepare request
+            LocationMarkerModel currentLocation = new LocationMarkerModel(currentPlace.getName().toString(),
+                    currentPlace.getLatLng(), currentPlace.getId(), currentPlace.getAddress().toString(), false);
+            TripRequestModel tripRequestModel = new TripRequestModel(currentLocation, destinationLocation, context);
 
-            String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f",
-                    destination.latitude, destination.longitude);
-            Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
-                    Uri.parse(uri));
-            intent.setPackage("com.google.android.apps.maps");
-            context.startActivity(intent);
+            MapsioService mapsioService = MapsioService.Factory.create(context);
+            Call<TripRequestModel> tripRegistrationCall = mapsioService.registerTrip(userId, tripRequestModel);
+
+            tripRegistrationCall.enqueue(new Callback<TripRequestModel>() {
+                @Override
+                public void onResponse(Call<TripRequestModel> call, Response<TripRequestModel> response) {
+
+                    String uri = String.format(Locale.ENGLISH, "google.navigation:q=%f,%f",
+                            destinationLocation.getLatLng().latitude, destinationLocation.getLatLng().longitude);
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+                            Uri.parse(uri));
+                    intent.setPackage("com.google.android.apps.maps");
+                    context.startActivity(intent);
+                }
+
+                @Override
+                public void onFailure(Call<TripRequestModel> call, Throwable t) {
+                    // TODO: show empty list and appropriate message
+                }
+
+            });
 
         } else {
+
             displayInfoDialog(context, R.string.info_dialog_curr_loc_title, R.string.info_dialog_curr_loc_message);
         }
 

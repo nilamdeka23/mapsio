@@ -6,8 +6,9 @@ import java.util.List;
 
 import cmpe295.sjsu.edu.mapsio.R;
 import cmpe295.sjsu.edu.mapsio.model.AuthRequestModel;
-import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
 import cmpe295.sjsu.edu.mapsio.model.LatLngModel;
+import cmpe295.sjsu.edu.mapsio.model.LocationMarkerModel;
+import cmpe295.sjsu.edu.mapsio.model.TripRequestModel;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -38,14 +39,13 @@ public interface MapsioService {
     Call<List<LocationMarkerModel>> getFavorites(@Query("userId") String userId);
 
     @POST("/api/favorites")
-    Call<LocationMarkerModel> addFavorite(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
+    Call<List<LocationMarkerModel>> addFavorite(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
 
     @DELETE("/api/favorites")
-    Call<LocationMarkerModel> deleteFavorite(@Query("userId") String userId, @Query("locationName") String name);
+    Call<List<LocationMarkerModel>> deleteFavorite(@Query("userId") String userId, @Query("locationName") String name);
 
-//    @POST("/api/trips")
-//    Call<LocationMarkerModel> registerTrip(@Query("userId") String userId, @Body LocationMarkerModel locationMarkerModel);
-
+    @POST("/api/trips")
+    Call<TripRequestModel> registerTrip(@Query("userId") String userId, @Body TripRequestModel tripRequestModel);
 
 
     class Factory {
