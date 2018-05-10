@@ -48,6 +48,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -93,11 +94,13 @@ public class GoogleMapsActivity extends AppCompatActivity
     private FloatingSearchView searchView;
     private String userId;
     private MapsioService mapsioService;
+    private boolean flag;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        flag = true;
         // init local marker dictionary/hashmap
         markerMap = new HashMap<>();
         // init marker description layout
@@ -186,8 +189,8 @@ public class GoogleMapsActivity extends AppCompatActivity
         TextView emailTextView = (TextView) header.findViewById(R.id.email_textView);
         emailTextView.setText(email);
         ImageView profilePicImageView = (ImageView) header.findViewById(R.id.account_imageView);
-        // TODO: need to fix this
-//        Picasso.with(this).load(picURL).into(profilePicImageView);
+        if (picURL.length() != 0)
+            Picasso.with(this).load(picURL).into(profilePicImageView);
 
         recommendationsRecyclerView = (RecyclerView) findViewById(R.id.recommendations_recyclerView);
 
@@ -654,6 +657,10 @@ public class GoogleMapsActivity extends AppCompatActivity
     public void onCurrentLocationReceived(Place currentPlace) {
         // Adding items to RecyclerView.
         AddItemsToRecyclerViewArrayList(currentPlace);
+        if (googleMap != null && flag) {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LocationUtils.getInstance().getCurrPlace().getLatLng(), 13));
+            flag = false;
+        }
     }
 
     @Override
@@ -682,8 +689,6 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
         //add click listener to myLocationButton - needs to be done only 1 time when the map is loaded
         LocationUtils.getInstance().addBehaviorToMyLocationButton();
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LocationUtils.getInstance().getCurrPlace().getLatLng(),13));
-
     }
 
     @Override
