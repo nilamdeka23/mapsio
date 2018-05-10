@@ -21,18 +21,27 @@
         android:padding="16dp">
 
 
-        <TextView
+       <!-- <TextView
             android:id = "@+id/about_us_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:background="@android:color/transparent"
             android:scrollbarAlwaysDrawVerticalTrack="true"
-            android:textSize="16dp"
-            android:lineSpacingExtra="10dp"
+            android:textSize="20dp"
+            android:lineSpacingExtra="5dp"
             android:breakStrategy="simple"
-            android:gravity="left"
-            android:fontFamily="robot"/>
+            android:fontFamily="robot"
+            />-->
+
+        <WebView
+            android:id="@+id/textContent"
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:scrollbarAlwaysDrawVerticalTrack="true"
+            android:textSize="25dp"
+            android:lineSpacingExtra="5dp"/>
         <!--android:textColor="@color/black"-->
 
     </LinearLayout>
