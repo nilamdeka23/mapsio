@@ -467,12 +467,13 @@ public class GoogleMapsActivity extends AppCompatActivity
                     @Override
                     public void onResponse(Call<List<LocationMarkerModel>> call, Response<List<LocationMarkerModel>> response) {
                         Log.d("RESPONSE", "RESPONSE + " + response.toString());
-                        Toast.makeText(GoogleMapsActivity.this, "FAV CILCKED", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GoogleMapsActivity.this, locationObj.getName() + "added to favorites.", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onFailure(Call<List<LocationMarkerModel>> call, Throwable t) {
-                        Log.d("FAILURE", "FAILURE + " + t.toString());
+
+                        Toast.makeText(GoogleMapsActivity.this, "Location not added to favorites. Try again.", Toast.LENGTH_SHORT).show();
                     }
 
                 });

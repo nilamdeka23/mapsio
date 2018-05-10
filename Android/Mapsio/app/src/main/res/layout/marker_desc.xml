@@ -67,7 +67,7 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="16dp"
         android:layout_toStartOf="@+id/get_directions_button"
-        android:background="@mipmap/unfav" />
+        android:background="@mipmap/ic_fav_location" />
 
     <Button
         android:id="@+id/get_directions_button"
