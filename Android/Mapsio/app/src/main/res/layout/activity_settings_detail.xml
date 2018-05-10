@@ -168,7 +168,6 @@
                 android:layout_height="60dp"
                 android:layout_alignParentRight="true"
                 android:layout_marginBottom="2dp"
-                android:scaleType="centerCrop"
                 android:src="@mipmap/ic_deactivate_icon" />
 
         </RelativeLayout>
