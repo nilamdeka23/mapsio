@@ -104,7 +104,6 @@ public class LocationUtils {
                             //Display the current location
                             displayMyLocationButton();
 
-                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currPlace.getLatLng(),13));
                             likelyPlaces.release();
 
                         } else {

@@ -682,6 +682,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         }
         //add click listener to myLocationButton - needs to be done only 1 time when the map is loaded
         LocationUtils.getInstance().addBehaviorToMyLocationButton();
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(LocationUtils.getInstance().getCurrPlace().getLatLng(),13));
 
     }
 
