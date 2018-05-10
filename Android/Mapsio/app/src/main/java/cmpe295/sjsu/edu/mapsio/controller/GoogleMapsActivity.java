@@ -704,7 +704,6 @@ public class GoogleMapsActivity extends AppCompatActivity
     @Override
     public void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-
         LocationMarkerModel clickedFavLocation = intent.getParcelableExtra("location_data");
 
         if (googleMap != null)

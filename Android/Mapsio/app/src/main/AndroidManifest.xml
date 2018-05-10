@@ -21,12 +21,12 @@
             android:name=".controller.GoogleMapsActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"
-            android:launchMode="singleTop">
-            <!--<intent-filter>-->
-                  <!--<action android:name="android.intent.action.MAIN" />-->
+            android:launchMode="singleInstance">
+            <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
 
-               <!--   <category android:name="android.intent.category.LAUNCHER" />-->
-            <!--</intent-filter>-->
+                  <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
 
         <activity
@@ -50,23 +50,23 @@
         <activity
             android:name=".controller.SplashActivity"
             android:theme="@style/SplashTheme">
-            <intent-filter>
+         <!--   <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            </intent-filter>-->
         </activity>
 
         <activity
             android:name=".controller.FavoritesActivity"
             android:label="Favorites"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"></activity>
 
         <activity
             android:name=".controller.AboutUsActivity"
             android:label="About Us"
-            android:theme="@style/AppTheme.NoActionBar" />
-
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
     </application>
 
 </manifest>
