@@ -16,7 +16,21 @@
     <string name="settings_deactivate_confirm">Are you sure you want to deactivate account?</string>
     <!-- Added for favorite list -->
     <string name="undo">undo</string>
-    <string name="about_us_text"> About Us</string>
+    <string name="about_us_text">
+        <![CDATA[
+            <font><p>
+                    <b><i><strong><font color="#009688">Mapsio</font></strong></i></b>
+                     <font color="black">significantly improves user experience by providing intelligent recommendations, exploiting machine learning
+                    techniques based on user’s commute pattern, calendar events, and favorites.
+                    With an enhanced user interface, this application aims to be more intuitive and less distracting to users.
+                    <br/>
+                     <br/>
+                    <b>App version:</b> 0.0.1
+                    </font>
+                </p>
+            </font>
+        ]]>
+    </string>
     <string name="settings_curr_loc">My Location</string>
     <string name="settings_curr_loc_desc">Allow mapsio to access your current location.</string>
 
