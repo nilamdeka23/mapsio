@@ -67,7 +67,7 @@
                     android:layout_marginLeft="2dp"
                     android:layout_marginRight="@dimen/activity_padding_horizontal"
                     android:scaleType="centerCrop"
-                    android:src="@mipmap/ic_launcher" />
+                    android:src="@mipmap/ic_place_holder" />
 
                 <TextView
                     android:id="@+id/location_name"

@@ -6,6 +6,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -19,6 +23,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,6 +46,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
@@ -48,6 +54,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.maps.android.ui.IconGenerator;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -389,15 +396,22 @@ public class GoogleMapsActivity extends AppCompatActivity
                 mostLikelyPlaceByName = response.get(0).freeze();
             }
 
+            IconGenerator iconFactory = new IconGenerator(this);
+            iconFactory.setRotation(0);
+            iconFactory.setContentRotation(0);
+            iconFactory.setStyle(IconGenerator.STYLE_RED);
+
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(tempPlace.getLatLng());
-            markerOptions.title(tempPlace.getName().toString());
+            // experimental code
+//          markerOptions.icon(BitmapDescriptorFactory.fromBitmap(getCustomMarker(tempPlace.getId(),tempPlace.getName().toString())));
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(tempPlace.getName().toString())));
+            markerOptions.anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
 
             if (googleMap != null) {
                 Marker marker = googleMap.addMarker(markerOptions);
                 markerMap.put(marker.getId(), new LocationMarkerModel(tempPlace.getName().toString(),
                         tempPlace.getLatLng(), tempPlace.getId(),  tempPlace.getAddress().toString(), tempPlace.getRating()));
-
             }
 
             response.release();
@@ -418,7 +432,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             // 50 miles -> 80467.2
             LatLngBounds bounds = MapsioUtils.getInstance().toBounds(currentPlace.getLatLng(), 80467.2);
 
-            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 12);
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, width - 200, height - 700, 14);
 
             if (googleMap != null) {
                 googleMap.animateCamera(cu);
@@ -427,16 +441,43 @@ public class GoogleMapsActivity extends AppCompatActivity
         } else {
 
             if (googleMap != null && mostLikelyPlaceByName != null) {
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 13));
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mostLikelyPlaceByName.getLatLng(), 14));
             }
         }
 
     }
 
+    // TODO: experimental code
+    private Bitmap getCustomMarker(String placeId, String text) {
+        View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.item_custom_marker, null);
+        final ImageView markerImage = (ImageView) customMarkerView.findViewById(R.id.marker_image);
+
+        MapsioUtils.getInstance().getPhotos(placeId, new IPlacePhoto() {
+            public void onDownloadCallback(Bitmap bitmap) {
+                markerImage.setImageBitmap(bitmap);
+            }
+        });
+
+        TextView marketText = (TextView) customMarkerView.findViewById(R.id.marker_text);
+        marketText.setText(text);
+
+        customMarkerView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        customMarkerView.layout(0, 0, customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight());
+        customMarkerView.buildDrawingCache();
+        Bitmap returnedBitmap = Bitmap.createBitmap(customMarkerView.getMeasuredWidth(), customMarkerView.getMeasuredHeight(),
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(returnedBitmap);
+        canvas.drawColor(Color.WHITE, PorterDuff.Mode.SRC_IN);
+        Drawable drawable = customMarkerView.getBackground();
+        if (drawable != null)
+            drawable.draw(canvas);
+        customMarkerView.draw(canvas);
+        return returnedBitmap;
+    }
+
     private void showMarkerDescLayout(final LocationMarkerModel locationObj) {
         final ImageView locationImageView = (ImageView) markerDescLayout.findViewById(R.id.location_imageView);
-        // TODO: appropriate placeholder image
-        locationImageView.setImageResource(R.mipmap.ic_launcher);
+        locationImageView.setImageResource(R.mipmap.ic_place_holder);
         TextView locationTitleTextView = (TextView) markerDescLayout.findViewById(R.id.location_title_textView);
         TextView locationDescTextView = (TextView) markerDescLayout.findViewById(R.id.location_desc_textView);
         Button favUnfavButton = (Button) markerDescLayout.findViewById(R.id.fav_unfav_button);

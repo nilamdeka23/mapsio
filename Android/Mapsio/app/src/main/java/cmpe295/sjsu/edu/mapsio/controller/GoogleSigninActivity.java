@@ -153,8 +153,8 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
                 @Override
                 public void onResponse(Call<AuthRequestModel> call, Response<AuthRequestModel> response) {
-                    Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Success " +
-                            response.toString(), Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(GoogleSigninActivity.this, "SignIn Auth Success " +
+//                            response.toString(), Toast.LENGTH_SHORT).show();
 
                     // store data in local application cache
                     SharedPreferences sharedPreferences = getSharedPreferences("user_data",
@@ -184,8 +184,8 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
         } else {
             // TODO: come up with a better toast message OR a meaningful(hint: google best practice)
-            Toast.makeText(GoogleSigninActivity.this, "SignIn Failure " + result.toString(),
-                    Toast.LENGTH_SHORT).show();
+//            Toast.makeText(GoogleSigninActivity.this, "SignIn Failure " + result.toString(),
+//                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -224,7 +224,7 @@ public class GoogleSigninActivity extends AppCompatActivity implements GoogleApi
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // TODO: come up with a better toast message or a meaninful action(hint: google best practice)
+        // TODO: come up with a better toast message or a meaningful action(hint: google best practice)
         Toast.makeText(GoogleSigninActivity.this, "SignIn Connection Failure " +
                 connectionResult.toString(), Toast.LENGTH_SHORT).show();
     }
