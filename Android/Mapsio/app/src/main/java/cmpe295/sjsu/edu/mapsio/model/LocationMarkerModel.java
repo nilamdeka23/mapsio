@@ -2,10 +2,12 @@ package cmpe295.sjsu.edu.mapsio.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.Html;
 
+import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.maps.model.LatLng;
 
-public class LocationMarkerModel implements Parcelable {
+public class LocationMarkerModel implements SearchSuggestion {
 
     private String address;
     private boolean isFavorite = false;
@@ -16,6 +18,12 @@ public class LocationMarkerModel implements Parcelable {
     private boolean isPoi = false;
 
     public LocationMarkerModel() {
+    }
+
+    public LocationMarkerModel(String placeId, String name, String address){
+        this.placeId = placeId;
+        this.name = name;
+        this.address = address;
     }
 
     public LocationMarkerModel(String name, LatLng latLng, String placeId, boolean isPoi) {
@@ -127,4 +135,10 @@ public class LocationMarkerModel implements Parcelable {
         isPoi = poi;
     }
 
+    @Override
+    public String getBody() {
+
+        String dispStr = "<p><font size=\"3\" color=\"white\">"+name+"</font><br/><font size=\"1\" color=\"grey\">"+address+"</font></p>";
+        return Html.fromHtml(dispStr).toString();
+    }
 }

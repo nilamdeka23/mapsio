@@ -20,6 +20,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -34,6 +36,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBufferResponse;
@@ -154,12 +157,53 @@ public class GoogleMapsActivity extends AppCompatActivity
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
                 searchText.delete(0, searchText.length());
                 searchText.append(newQuery);
+
+                if (!oldQuery.equals("") && newQuery.equals("")) {
+                    searchView.clearSuggestions();
+                } else {
+
+                    searchForAutocomplete(newQuery, GoogleMapsActivity.this);
+                    //searchView.swapSuggestions(newSuggestions);
+                }
+            }
+        });
+
+        searchView.setOnBindSuggestionCallback(new SearchSuggestionsAdapter.OnBindSuggestionCallback() {
+            @Override
+            public void onBindSuggestion(View suggestionView, final ImageView leftIcon,
+                                         TextView textView, SearchSuggestion item, int itemPosition) {
+                suggestionView.setBackground(getDrawable(R.drawable.border));
+                leftIcon.setImageDrawable(getDrawable(R.mipmap.ic_place_holder));
+                leftIcon.getLayoutParams().height = 300;
+                leftIcon.getLayoutParams().width = 300;
+
+                textView.setTextColor(Color.WHITE);
+                textView.setEllipsize(TextUtils.TruncateAt.END);
+                textView.setLines(2);
+
+
+                LocationMarkerModel location = (LocationMarkerModel) item;
+                MapsioUtils.getInstance().getPhotos(location.getPlaceId(), new IPlacePhoto() {
+
+                    public void onDownloadCallback(Bitmap bitmap) {
+
+                        leftIcon.setImageBitmap(bitmap);
+                    }
+                });
+                //String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"grey\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
+                String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"white\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
+                textView.setText( Html.fromHtml(dispStr));
+
             }
         });
 
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                LocationMarkerModel selectedLocation = (LocationMarkerModel) searchSuggestion;
+                searchView.clearSuggestions();
+                Log.d("clicked suggestion","place ID:" + selectedLocation.getPlaceId() + "  name:"+ selectedLocation.getName());
+                markSelectedPlace(selectedLocation.getPlaceId());
             }
 
             @Override
@@ -168,7 +212,7 @@ public class GoogleMapsActivity extends AppCompatActivity
                     googleMap.clear();
                 // clear local cache
                 markerMap.clear();
-
+                searchView.clearSuggestions();
                 search(searchText.toString(), GoogleMapsActivity.this);
             }
         });
@@ -308,6 +352,54 @@ public class GoogleMapsActivity extends AppCompatActivity
 
     }
 
+    public void searchForAutocomplete(final String searchQuery, AppCompatActivity activity) {
+
+        final ArrayList<LocationMarkerModel> newSuggestions = new ArrayList<>();
+        //If location permission is not granted try getting it
+        if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
+            // Prompt the user for permission.
+            LocationUtils.getInstance().getLocationPermission(activity);
+        }
+
+        Task<AutocompletePredictionBufferResponse> results;
+        Place currentPlace = LocationUtils.getInstance().getCurrPlace();
+        // if the current location is available
+        if (currentPlace != null) {
+            // current location is taken as the center
+            LatLng latLng = new LatLng(currentPlace.getLatLng().latitude, currentPlace.getLatLng().longitude);
+            LatLngBounds latlngBounds = new LatLngBounds(latLng, latLng);
+
+            results = geoDataClient.getAutocompletePredictions(searchQuery, latlngBounds, null);
+        } else {
+            // if the current location is not available, get all the predictions
+            results = geoDataClient.getAutocompletePredictions(searchQuery, null, null);
+        }
+
+        results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
+
+            @Override
+            public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
+
+                if (task.isSuccessful() && task.getResult() != null) {
+                    //Holder for the place Ids
+                    ArrayList<String> placeIdList = new ArrayList<>();
+                    AutocompletePredictionBufferResponse response = task.getResult();
+
+                    for (AutocompletePrediction prediction : response) {
+
+                        newSuggestions.add(new LocationMarkerModel(prediction.getPlaceId().toString(),prediction.getPrimaryText(null).toString(),prediction.getSecondaryText(null).toString()));
+
+                    }
+                    searchView.swapSuggestions(newSuggestions);
+
+                    response.release();
+                }
+                searchView.hideProgress();
+            }
+        });
+
+    }
+
     public void search(final String searchQuery, AppCompatActivity activity) {
         //If location permission is not granted try getting it
         if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
@@ -351,6 +443,55 @@ public class GoogleMapsActivity extends AppCompatActivity
         });
 
     }
+
+    private void markSelectedPlace(String placeId) {
+
+        //clear the google map before marking new places
+        if (googleMap != null)
+            googleMap.clear();
+
+
+        // clear local cache
+        markerMap.clear();
+
+        Task<PlaceBufferResponse> result = geoDataClient.getPlaceById(placeId);
+        result.addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
+
+                if (task.isSuccessful() && task.getResult() != null) {
+                    PlaceBufferResponse response = task.getResult();
+                    Place place = response.get(0).freeze();
+                    LocationMarkerModel locationObj = new LocationMarkerModel(place.getName().toString(), place.getLatLng(),
+                            place.getId(), place.getAddress().toString(), place.getRating());
+
+
+                    //----------add the marker---------------
+                    IconGenerator iconFactory = new IconGenerator(GoogleMapsActivity.this);
+                    iconFactory.setRotation(0);
+                    iconFactory.setContentRotation(0);
+                    iconFactory.setStyle(IconGenerator.STYLE_RED);
+
+                    MarkerOptions markerOptions = new MarkerOptions();
+                    markerOptions.position(locationObj.getLatLng());
+                    // experimental code
+        //          markerOptions.icon(BitmapDescriptorFactory.fromBitmap(getCustomMarker(tempPlace.getId(),tempPlace.getName().toString())));
+                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(locationObj.getName().toString())));
+                    markerOptions.anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+
+                    if (googleMap != null) {
+                        Marker marker = googleMap.addMarker(markerOptions);
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationObj.getLatLng(), 14));
+                    }
+                    //--------------------------------------
+                    showMarkerDescLayout(locationObj);
+
+                    response.release();
+                }
+            }
+        });
+    }
+
 
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
 
