@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -16,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -29,6 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.google.android.gms.location.places.AutocompletePrediction;
 import com.google.android.gms.location.places.AutocompletePredictionBufferResponse;
@@ -153,16 +156,19 @@ public class GoogleMapsActivity extends AppCompatActivity
         searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
             @Override
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+
+                LocationMarkerModel selectedLocation = (LocationMarkerModel) searchSuggestion;
+                Log.d("clicked suggestion","place ID:" + selectedLocation.getPlaceId() + "  name:"+ selectedLocation.getName());
             }
 
             @Override
             public void onSearchAction(String currentQuery) {
-                if (googleMap != null)
+                /*if (googleMap != null)
                     googleMap.clear();
                 // clear local cache
                 markerMap.clear();
 
-                search(searchText.toString(), GoogleMapsActivity.this);
+                search(searchText.toString(), GoogleMapsActivity.this);*/
             }
         });
 
@@ -175,6 +181,45 @@ public class GoogleMapsActivity extends AppCompatActivity
             }
 
         });
+
+        searchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
+            @Override
+            public void onSearchTextChanged(String oldQuery, final String newQuery) {
+
+                if (!oldQuery.equals("") && newQuery.equals("")) {
+                    searchView.clearSuggestions();
+                } else {
+
+                    search(newQuery, GoogleMapsActivity.this);
+                    //searchView.swapSuggestions(newSuggestions);
+                }
+            }
+        });
+
+        searchView.setOnBindSuggestionCallback(new SearchSuggestionsAdapter.OnBindSuggestionCallback() {
+            @Override
+            public void onBindSuggestion(View suggestionView, ImageView leftIcon,
+                                        TextView textView, SearchSuggestion item, int itemPosition) {
+                leftIcon.setImageDrawable(getDrawable(R.drawable.google_icon));
+                textView.setTextColor(Color.WHITE);
+
+                LocationMarkerModel location = (LocationMarkerModel) item;
+                //String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"grey\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
+                String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"white\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
+                textView.setText( Html.fromHtml(dispStr));
+
+            }
+        });
+
+        //listen for when suggestion list expands/shrinks in order to move down/up the
+        //search results list
+        /*searchView.setOnSuggestionsListHeightChanged(new FloatingSearchView.OnSuggestionsListHeightChanged() {
+            @Override
+            public void onSuggestionsListHeightChanged(float newHeight) {
+                mSearchResultsList.setTranslationY(newHeight);
+            }
+        });
+*/
 
         SharedPreferences sharedPreferences = getSharedPreferences("user_data", Context.MODE_PRIVATE);
         String name = sharedPreferences.getString("user_name", "");
@@ -302,6 +347,8 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     public void search(final String searchQuery, AppCompatActivity activity) {
+
+        final ArrayList<LocationMarkerModel> newSuggestions = new ArrayList<>();
         //If location permission is not granted try getting it
         if (!LocationUtils.getInstance().ismLocationPermissionGranted()) {
             // Prompt the user for permission.
@@ -334,14 +381,22 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                     for (AutocompletePrediction prediction : response) {
 
-                        placeIdList.add(prediction.getPlaceId());
-                    }
+                      //  placeIdList.add(prediction.getPlaceId());
+                        newSuggestions.add(new LocationMarkerModel(prediction.getPlaceId().toString(),prediction.getPrimaryText(null).toString(),prediction.getSecondaryText(null).toString()));
 
-                    markPlaces(placeIdList, searchQuery);
+                    }
+                    searchView.swapSuggestions(newSuggestions);
+
+                    //markPlaces(placeIdList, searchQuery);
                     response.release();
                 }
+                searchView.hideProgress();
             }
         });
+
+    }
+
+    private void markselectedPlace(String placeID){
 
     }
 

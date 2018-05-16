@@ -39,7 +39,9 @@
             app:floatingSearch_searchHint="Search..."
             app:floatingSearch_showSearchKey="true"
             app:floatingSearch_suggestionsListAnimDuration="250"
-            app:floatingSearch_viewTextColor="@android:color/white" />
+            app:floatingSearch_viewTextColor="@android:color/white"
+            app:floatingSearch_searchSuggestionTextSize="20dp"/>
+
 
         <include
             android:id="@+id/marker_desc_layout"
