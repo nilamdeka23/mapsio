@@ -198,12 +198,27 @@ public class GoogleMapsActivity extends AppCompatActivity
 
         searchView.setOnBindSuggestionCallback(new SearchSuggestionsAdapter.OnBindSuggestionCallback() {
             @Override
-            public void onBindSuggestion(View suggestionView, ImageView leftIcon,
-                                        TextView textView, SearchSuggestion item, int itemPosition) {
+            public void onBindSuggestion(View suggestionView, final ImageView leftIcon,
+                                         TextView textView, SearchSuggestion item, int itemPosition) {
+                suggestionView.setBackgroundDrawable(getDrawable(R.drawable.border));
                 leftIcon.setImageDrawable(getDrawable(R.drawable.google_icon));
+                leftIcon.getLayoutParams().height = 300;
+                leftIcon.getLayoutParams().width = 300;
+               /* leftIcon.setMaxWidth(10);
+                leftIcon.setMaxHeight(20);
+*/
                 textView.setTextColor(Color.WHITE);
 
+
+
                 LocationMarkerModel location = (LocationMarkerModel) item;
+                MapsioUtils.getInstance().getPhotos(location.getPlaceId(), new IPlacePhoto() {
+
+                    public void onDownloadCallback(Bitmap bitmap) {
+
+                        leftIcon.setImageBitmap(bitmap);
+                    }
+                });
                 //String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"grey\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
                 String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"white\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
                 textView.setText( Html.fromHtml(dispStr));
