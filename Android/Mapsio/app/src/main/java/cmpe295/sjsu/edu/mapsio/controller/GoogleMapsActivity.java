@@ -157,8 +157,8 @@ public class GoogleMapsActivity extends AppCompatActivity
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
                 searchText.delete(0, searchText.length());
                 searchText.append(newQuery);
-
                 if (!oldQuery.equals("") && newQuery.equals("")) {
+
                     searchView.clearSuggestions();
                 } else {
 
@@ -176,11 +176,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                 leftIcon.setImageDrawable(getDrawable(R.mipmap.ic_place_holder));
                 leftIcon.getLayoutParams().height = 300;
                 leftIcon.getLayoutParams().width = 300;
-
                 textView.setTextColor(Color.WHITE);
                 textView.setEllipsize(TextUtils.TruncateAt.END);
                 textView.setLines(2);
-
 
                 LocationMarkerModel location = (LocationMarkerModel) item;
                 MapsioUtils.getInstance().getPhotos(location.getPlaceId(), new IPlacePhoto() {
@@ -190,10 +188,9 @@ public class GoogleMapsActivity extends AppCompatActivity
                         leftIcon.setImageBitmap(bitmap);
                     }
                 });
-                //String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"grey\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
+
                 String dispStr = "<p><font size=\"3\" color=\""+Color.WHITE+"\">"+((LocationMarkerModel) item).getName()+"</font><br/><font size=\"1\" color=\"white\">"+((LocationMarkerModel) item).getAddress()+"</font></p>";
                 textView.setText( Html.fromHtml(dispStr));
-
             }
         });
 
@@ -202,7 +199,6 @@ public class GoogleMapsActivity extends AppCompatActivity
             public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
                 LocationMarkerModel selectedLocation = (LocationMarkerModel) searchSuggestion;
                 searchView.clearSuggestions();
-                Log.d("clicked suggestion","place ID:" + selectedLocation.getPlaceId() + "  name:"+ selectedLocation.getName());
                 markSelectedPlace(selectedLocation.getPlaceId());
             }
 
@@ -445,12 +441,9 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     private void markSelectedPlace(String placeId) {
-
         //clear the google map before marking new places
         if (googleMap != null)
             googleMap.clear();
-
-
         // clear local cache
         markerMap.clear();
 
@@ -465,8 +458,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                     LocationMarkerModel locationObj = new LocationMarkerModel(place.getName().toString(), place.getLatLng(),
                             place.getId(), place.getAddress().toString(), place.getRating());
 
-
-                    //----------add the marker---------------
                     IconGenerator iconFactory = new IconGenerator(GoogleMapsActivity.this);
                     iconFactory.setRotation(0);
                     iconFactory.setContentRotation(0);
@@ -474,27 +465,22 @@ public class GoogleMapsActivity extends AppCompatActivity
 
                     MarkerOptions markerOptions = new MarkerOptions();
                     markerOptions.position(locationObj.getLatLng());
-                    // experimental code
-        //          markerOptions.icon(BitmapDescriptorFactory.fromBitmap(getCustomMarker(tempPlace.getId(),tempPlace.getName().toString())));
                     markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(locationObj.getName().toString())));
                     markerOptions.anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
 
                     if (googleMap != null) {
                         Marker marker = googleMap.addMarker(markerOptions);
+                        markerMap.put(marker.getId(), locationObj);
                         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(locationObj.getLatLng(), 14));
                     }
-                    //--------------------------------------
-                    showMarkerDescLayout(locationObj);
-
+//                    showMarkerDescLayout(locationObj);
                     response.release();
                 }
             }
         });
     }
 
-
     private void markPlaces(ArrayList<String> placeIdList, String searchQuery) {
-
         //clear the google map before marking new places
         if (googleMap != null)
             googleMap.clear();
@@ -525,7 +511,7 @@ public class GoogleMapsActivity extends AppCompatActivity
             } // hack to make things synchronous
 
             PlaceBufferResponse response = result.getResult();
-            Place tempPlace = response.get(0);
+            Place tempPlace = response.get(0).freeze();
 
             //save the first place
             if (i == 0) {
@@ -537,23 +523,45 @@ public class GoogleMapsActivity extends AppCompatActivity
                 mostLikelyPlaceByName = response.get(0).freeze();
             }
 
-            IconGenerator iconFactory = new IconGenerator(this);
+            IconGenerator iconFactory = new IconGenerator(GoogleMapsActivity.this);
             iconFactory.setRotation(0);
             iconFactory.setContentRotation(0);
             iconFactory.setStyle(IconGenerator.STYLE_RED);
 
             MarkerOptions markerOptions = new MarkerOptions();
             markerOptions.position(tempPlace.getLatLng());
-            // experimental code
-//          markerOptions.icon(BitmapDescriptorFactory.fromBitmap(getCustomMarker(tempPlace.getId(),tempPlace.getName().toString())));
             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(tempPlace.getName().toString())));
             markerOptions.anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
 
             if (googleMap != null) {
                 Marker marker = googleMap.addMarker(markerOptions);
                 markerMap.put(marker.getId(), new LocationMarkerModel(tempPlace.getName().toString(),
-                        tempPlace.getLatLng(), tempPlace.getId(),  tempPlace.getAddress().toString(), tempPlace.getRating()));
+                        tempPlace.getLatLng(), tempPlace.getId(), tempPlace.getAddress().toString(), tempPlace.getRating()));
             }
+
+            // experimental code
+//            MapsioUtils.getInstance().getPhotos(tempPlace.getId(), new IPlacePhoto() {
+//                public void onDownloadCallback(Bitmap bitmap) {
+//                    IconGenerator iconFactory = new IconGenerator(GoogleMapsActivity.this);
+//                    iconFactory.setRotation(0);
+//                    iconFactory.setContentRotation(0);
+//                    iconFactory.setStyle(IconGenerator.STYLE_RED);
+//
+//                    MarkerOptions markerOptions = new MarkerOptions();
+//                    markerOptions.position(tempPlace.getLatLng());
+//                    // experimental code
+//                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(getCustomMarker(bitmap,tempPlace.getName().toString())));
+////                    markerOptions.icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon(tempPlace.getName().toString())));
+//                    markerOptions.anchor(iconFactory.getAnchorU(), iconFactory.getAnchorV());
+//
+//                    if (googleMap != null) {
+//                        Marker marker = googleMap.addMarker(markerOptions);
+//                        markerMap.put(marker.getId(), new LocationMarkerModel(tempPlace.getName().toString(),
+//                                tempPlace.getLatLng(), tempPlace.getId(), tempPlace.getAddress().toString(), tempPlace.getRating()));
+//                    }
+//
+//                }
+//            });
 
             response.release();
         }
@@ -589,15 +597,10 @@ public class GoogleMapsActivity extends AppCompatActivity
     }
 
     // TODO: experimental code
-    private Bitmap getCustomMarker(String placeId, String text) {
+    private Bitmap getCustomMarker(Bitmap bitmap, String text) {
         View customMarkerView = ((LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.item_custom_marker, null);
-        final ImageView markerImage = (ImageView) customMarkerView.findViewById(R.id.marker_image);
-
-        MapsioUtils.getInstance().getPhotos(placeId, new IPlacePhoto() {
-            public void onDownloadCallback(Bitmap bitmap) {
-                markerImage.setImageBitmap(bitmap);
-            }
-        });
+        ImageView markerImage = (ImageView) customMarkerView.findViewById(R.id.marker_image);
+        markerImage.setImageBitmap(bitmap);
 
         TextView marketText = (TextView) customMarkerView.findViewById(R.id.marker_text);
         marketText.setText(text);
@@ -793,7 +796,6 @@ public class GoogleMapsActivity extends AppCompatActivity
                 }
             }
         });
-
         // Animating to the touched position
         googleMap.animateCamera(CameraUpdateFactory.newLatLng(poi.latLng));
     }
@@ -910,9 +912,7 @@ public class GoogleMapsActivity extends AppCompatActivity
         showMarkerDescLayout(clickedFavLocation);
         // Animating to the touched position
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(clickedFavLocation.getLatLng(), 14));
-
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
