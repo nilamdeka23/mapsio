@@ -6,4 +6,7 @@ It is a wrapper application on top of Google Maps for drivers.
 It provides personalized recommendation for destination learning from one’s commute history and calendar events, simplified search and favorite management.
 
 
+## Project Poster
+![Alt Text](https://github.com/nilamdeka23/mapsio/blob/master/poster.png)
+
 
